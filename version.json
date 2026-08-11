@@ -1,16 +1,19 @@
 {
-  "versionCode": 2,
-  "versionName": "3.2.0",
+  "versionCode": 4,
+  "versionName": "3.2.1",
   "releaseDate": "2026-08-11",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v3.2.0-vc2/SilaTV_PRO_GOLDEN_2_V3.2.0_UPDATE.apk",
-  "apkSizeBytes": 19265015,
-  "sha256": "3c5e9eea5b8e8dd1c80ba3e98ccdbb9d03c7feb316bf3a512d7f59d4ce5bcf97",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v3.2.1/SilaTV_PRO_v3.2.1.apk",
+  "apkSizeBytes": 19612345,
+  "sha256": "9dac3bc27c899aaecfb175c3b603fc3d1a178945db8dc7f144299dc9325a6d89",
   "changes": [
-  "SılaTV PRO sürüm bilgileri güncellendi ve Ayarlar ekranındaki sürüm gösterimi düzeltildi.",
-  "Uygulama içi güncelleme sistemi aktif hale getirildi.",
-  "AceStream kurulum yönlendirmesi iyileştirildi ve Google Play Store üzerinden güvenli kurulum sağlandı.",
-  "AceStream uyumluluğu ve mevcut GOLDEN #2 FINAL çalışma yapısı korundu.",
-  "Genel kararlılık ve kullanıcı deneyimi iyileştirmeleri yapıldı."
+    "Yeni SilaTV PRO tasarımı ve premium görsel kimlik eklendi.",
+    "Premium Platformlar ekranı Hero alanı ve geliştirilmiş içerik vitrinleriyle yenilendi.",
+    "Dev film ve dizi arşivi; poster, tür, oyuncu, yönetmen, puan ve fragman bilgileriyle geliştirildi.",
+    "Kaldığın Yerden Devam Et sistemi ve %95 akıllı tamamlama desteği geliştirildi.",
+    "EPG Now/Next, program ilerleme göstergesi ve EPG önbelleği geliştirildi.",
+    "Favoriler; Tümü, Canlı TV, Filmler ve Diziler olarak kategorilere ayrıldı.",
+    "Arama sonuçlarına TV, Film, Dizi ve AceStream tür rozetleri eklendi.",
+    "AceStream oynatma desteği, Android TV kumanda deneyimi, performans ve genel kararlılık iyileştirildi."
   ],
   "mandatory": false
 }
