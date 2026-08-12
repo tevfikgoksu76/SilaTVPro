@@ -1,19 +1,20 @@
 {
-  "versionCode": 4,
-  "versionName": "3.2.1",
-  "releaseDate": "2026-08-11",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v3.2.1/SilaTV_PRO_v3.2.1.apk",
-  "apkSizeBytes": 19652874,
-  "sha256": "9dac3bc27c899aaecfb175c3b603fc3d1a178945db8dc7f144299dc9325a6d89",
+  "versionCode": 7,
+  "versionName": "3.2.4",
+  "releaseDate": "2026-08-12",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v3.2.4/SilaTV_PRO_v3.2.4.apk",
+  "apkSizeBytes": 19723281,
+"sha256": "69bdc0a791f78970ea97531f3582d50398f470bbf8892bc7ef8e1858b261fc89",
   "changes": [
-    "Yeni SilaTV PRO tasarımı ve premium görsel kimlik eklendi.",
-    "Premium Platformlar ekranı Hero alanı ve geliştirilmiş içerik vitrinleriyle yenilendi.",
-    "Dev film ve dizi arşivi; poster, tür, oyuncu, yönetmen, puan ve fragman bilgileriyle geliştirildi.",
-    "Kaldığın Yerden Devam Et sistemi ve %95 akıllı tamamlama desteği geliştirildi.",
-    "EPG Now/Next, program ilerleme göstergesi ve EPG önbelleği geliştirildi.",
-    "Favoriler; Tümü, Canlı TV, Filmler ve Diziler olarak kategorilere ayrıldı.",
-    "Arama sonuçlarına TV, Film, Dizi ve AceStream tür rozetleri eklendi.",
-    "AceStream oynatma desteği, Android TV kumanda deneyimi, performans ve genel kararlılık iyileştirildi."
+    "DAHA HIZLI. DAHA AKICI. DAHA KARARLI.",
+    "Yeni M3U/playlist disk önbelleği ile uygulama açılışı ve kanal listesinin hazırlanması hızlandırıldı.",
+    "Canlı TV ve Spor bölümlerine kumandadan CH+ / CH- ile hızlı kanal geçişi eklendi.",
+    "Aktif oynatma sırasında Android TV / Google TV ekran koruyucusunun devreye girmesini önleyen kesintisiz izleme desteği eklendi.",
+    "Canlı TV, Spor, Filmler ve AceStream kategori görünümü yeni koyu mor kartlar ve kırmızı çerçevelerle yenilendi.",
+    "AceStream kategori ikonları ve genel kullanım deneyimi geliştirildi.",
+    "Kaldığın Yerden Devam Et, %95 akıllı tamamlama, EPG, Favoriler, Film/Dizi ve güvenli güncelleme altyapısı korunarak genel performans iyileştirildi.",
+    "M3U kanal kaynaklarının kapsamlı kontrol ve yenileme çalışması bir sonraki aşamada devam edecek.",
+    "SılaTV PRO — Aç. Seç. İzle. VPN ile uğraşma."
   ],
   "mandatory": false
 }
