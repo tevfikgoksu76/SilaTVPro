@@ -1,19 +1,20 @@
 {
-  "versionCode": 8,
-  "versionName": "3.2.5",
+  "versionCode": 10,
+  "versionName": "3.2.7",
   "releaseDate": "2026-08-12",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v3.2.5/SilaTV_PRO_v3.2.5.apk",
-  "apkSizeBytes": 19720571,
-  "sha256": "5d6bc2d77a65937dea2d632eb6086d51dbd702300b554e348a6283b6353e80f5",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v3.2.7/SilaTV_PRO_v3.2.7.apk",
+  "apkSizeBytes": 19756491,
+"sha256": "dcbc815a7a7acacfb7a2b3dd5b4956bce790f232a01a860702b39980f09f4aab",
   "changes": [
-    "SılaTV PRO v3.2.5 — FINAL_CLEAN M3U güncellemesi.",
-    "Yeni ana kanal listesi SilaTVPRO_Master_M3U_FINAL_CLEAN.m3u olarak devreye alındı.",
-    "Eski resmi AceHybrid M3U kullanan mevcut kullanıcılar FINAL_CLEAN listeye otomatik olarak geçiriliyor.",
-    "Kullanıcıların kendi özel M3U adresleri korunuyor ve kesinlikle değiştirilmiyor.",
-    "Canlı TV kaynakları gerçek cihaz testleriyle temizlendi; çalışmayan ve eski yayın kaynakları kaldırıldı.",
-    "235 gerçek AceStream kaydı ve mevcut AceStream sistemi aynen korundu.",
-    "Player, CH+ / CH-, EPG, Favoriler, Kaldığın Yerden Devam Et, %95 tamamlama, Film/Dizi ve performans iyileştirmeleri korunmuştur.",
-    "SılaTV PRO — Aç. Seç. İzle. VPN ile uğraşma."
+    "SılaTV PRO v3.2.7 yayınlandı.",
+    "Favoriler V2 performans ve kararlılık düzeltmeleri uygulandı.",
+    "Çok sayıda favori eklendiğinde oluşabilen yavaşlama, takılma ve Favoriler ekranına giriş sorunları giderildi.",
+    "Favoriler işlemlerinde gereksiz büyük playlist hesapları azaltılarak TV ve kumanda performansı iyileştirildi.",
+    "Film ve dizilerde Kaldığın Yerden Devam Et sistemi korunmuştur.",
+    "%95 akıllı tamamlama sistemi korunmuştur.",
+    "Canlı TV, Spor, CH+ / CH-, AceStream, EPG ve mevcut oynatma altyapısı korunmuştur.",
+    "Genel uygulama kararlılığı ve Android TV kullanım deneyimi iyileştirildi.",
+    "SılaTV PRO — Aç. Seç. İzle."
   ],
   "mandatory": false
 }
