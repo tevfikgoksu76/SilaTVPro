@@ -3,8 +3,8 @@
   "versionName": "4.0.0",
   "releaseDate": "2026-09-02",
   "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.0/SilaTV.PRO.v4.0.0.apk",
-  "apkSizeBytes": 19864734,
-  "sha256": "03c4b0d8d3a360e1c93680280c5573de8485e9d54ba0134258c3b08b2109ed2",
+  "apkSizeBytes": 19851482,
+  "sha256": "c9b15ad79d42da79b0982e9788a009265c3f0e97647f5d3226c681d2ce5e7b19",
   "changes": [
     "SılaTV PRO v4.0.0 yayınlandı.",
     "Uygulama açılış performansı ve genel kararlılık geliştirildi.",
@@ -14,6 +14,7 @@
     "Önceki M3U'ya Dön ve M3U yedekleme sistemi geliştirildi.",
     "Kategori yönetimi ve kişisel düzen özellikleri geliştirildi.",
     "Canlı TV ve Dünya TV kararlılığı geliştirildi.",
+    "Güncelleme kontrol sistemi iyileştirildi.",
     "Çeşitli hata düzeltmeleri ve stabilite iyileştirmeleri yapıldı.",
     "SılaTV PRO ücretsiz ve reklamsızdır."
   ],
