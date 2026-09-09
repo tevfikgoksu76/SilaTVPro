@@ -1,0 +1,58 @@
+name: SilaTV Health Scan
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Bu run'da en çok kaç URL kontrol edilsin? İlk bootstrap için 8000 önerilir."
+        required: false
+        default: "8000"
+
+concurrency:
+  group: silatv-health-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Önceki state'i KV'den indir (yoksa boş)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@3 kv key get --namespace-id "${{ secrets.CF_KV_NAMESPACE_ID }}" hstate > state.json 2>/dev/null             || echo '{}' > state.json
+          test -s state.json || echo '{}' > state.json
+
+      - name: Health scan
+        env:
+          M3U_SOURCE_URL: ${{ secrets.M3U_SOURCE_URL }}
+          STATE_FILE: state.json
+          OUT_DIR: out
+          CONCURRENCY: "100"
+          LIMIT: ${{ github.event.inputs.limit || '0' }}
+        run: node tools/health-scan/scan.mjs
+
+      - name: Snapshot + state'i KV'ye yükle
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          NS="${{ secrets.CF_KV_NAMESPACE_ID }}"
+          npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:clean --path out/clean.m3u
+          npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:stats --path out/stats.json
+          npx --yes wrangler@3 kv key put --namespace-id "$NS" hstate --path state.json
+
+      - name: Özet
+        run: cat out/stats.json
