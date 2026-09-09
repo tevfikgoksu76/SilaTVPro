@@ -1,17 +1,18 @@
 {
-  "versionCode": 35,
-  "versionName": "4.0.5",
+  "versionCode": 34,
+  "versionName": "4.0.4",
   "releaseDate": "2026-09-09",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.5/SilaTV_PRO_v4.0.5.apk",
-  "apkSizeBytes": 19955515,
-  "sha256": "c598d910df4ad1799488b3549c3acca6a3c8d1a306b2ba14587d6af5027d2236",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.4/SilaTV_PRO_v4.0.4.apk",
+  "apkSizeBytes": 19958319,
+  "sha256": "45975088ffdd064f63610e246b6033f4e29873b46a081f015383030ad913f986",
   "mandatory": false,
   "changes": [
-    "🚀 Ölü bağlantılar otomatik temizleniyor",
-    "🔄 M3U listesi daha temiz ve güncel",
-    "🛡️ Geçici bağlantı hataları korunuyor",
-    "🎬 Player 3.0 stabil",
-    "▶️ YouTube desteği devam ediyor",
-    "💚 Daha stabil ve akıcı kullanım"
+    "📱 Telefonlarda daha stabil ve akıcı kullanım",
+    "⚡ Genel performans ve akıcılık iyileştirmeleri",
+    "🎬 Mevcut Player 3.0 stabil yapısı korundu",
+    "▶️ YouTube oynatma desteği devam ediyor",
+    "🔄 M3U / içerik güncelleme sistemi korunarak devam ediyor",
+    "🛡️ Mevcut stabil startup ve SWR cache yapısı korundu",
+    "💚 Ücretsiz ve reklamsız"
   ]
 }
