@@ -38,6 +38,7 @@ jobs:
       - name: Health scan
         env:
           M3U_SOURCE_URL: ${{ secrets.M3U_SOURCE_URL }}
+          SOURCE_UA: "SilaTVPRO/4.0.4"
           STATE_FILE: state.json
           OUT_DIR: out
           CONCURRENCY: "100"
