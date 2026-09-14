@@ -32,6 +32,39 @@ function hostOf(lowUrl) {
 function absolutize(loc, base) { try { return new URL(loc, base).toString(); } catch (_) { return loc; } }
 
 /**
+ * AceStream Engine yerel HTTP gateway'i mi? (dış runner'dan ERİŞİLEMEZ → HTTP-check'e SOKULMAMALI)
+ * Kapsam: /ace/getstream ve /ace/manifest yolları (?id= | ?infohash= | ?content_id= | ?pid= HEPSİ),
+ * ayrıca yerel engine host'u 127.0.0.1:6878 / localhost:6878 / [::1]:6878.
+ * NEDEN: Önceki sürüm AceStream'i yalnız `infohash`/`content_id` param'ı ya da `acestream://`/`infohash://`
+ * şeması ile tanıyordu; `getstream?id=...` biçimi bu kurallara UYMADIĞI için `checkable` sayılıp
+ * loopback adrese probe ediliyor, erişilemediği için 3-strike sonrası yanlışlıkla DEAD oluyordu (84 kayıt).
+ * Yol/host tabanlı bu kontrol normal HTTP kanallarına over-match ETMEZ (yalnız /ace/getstream|manifest).
+ */
+function isAceGatewayUrl(low) {
+  if (/\/ace\/(?:getstream|manifest)(?:[\/?#]|$)/.test(low)) return true;
+  const h = hostOf(low);
+  return h === "127.0.0.1:6878" || h === "localhost:6878" || h === "[::1]:6878";
+}
+
+/**
+ * Pixeldrain indirme URL'ini OTORİTER "varlık" ucuna (/info) çeviren probe hedefi döndürür (yoksa null).
+ * NEDEN: `/api/file/<id>?download` ucu Range/UA/geçici indirme hatası nedeniyle var olan dosya için bile
+ * 404/hata dönebiliyordu → `classifyResponse` 404'ü `hard:true` (anında DEAD) sayıp geçerli filmleri siliyordu.
+ * `/api/file/<id>/info` ise dosyanın gerçekten var olup olmadığını kesin söyler (200 var / 404 gerçekten yok),
+ * Range gerektirmez, tarayıcı UA + Referer ile çağrılır. `soft:true` → 404 bile olsa hard-DEAD değil, 3-strike'a
+ * tabi (tek seferlik hiccup silmez). Master ve app etkilenmez; yalnız health-check yöntemi düzeltilir.
+ */
+function pixeldrainProbe(rawUrl) {
+  const m = String(rawUrl || "").match(/^https?:\/\/pixeldrain\.com\/api\/file\/([A-Za-z0-9_-]+)/i);
+  if (!m) return null;
+  return {
+    url: `https://pixeldrain.com/api/file/${m[1]}/info`,
+    headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json", "Referer": "https://pixeldrain.com/" },
+    soft: true,
+  };
+}
+
+/**
  * URL anahtarı — SENKRON, ucuz hash (iki tohumlu 32-bit FNV-1a → 16 hex). Çakışma ihmal edilebilir.
  */
 export function urlKeyHex(str) {
@@ -56,7 +89,8 @@ export function classifyUrl(rawUrl) {
   if (!u) return { kind: "empty", checkable: false };
 
   if (low.startsWith("acestream://") || low.includes("acestream://") ||
-      low.startsWith("infohash://") || /(?:^|[?&])(?:infohash|content_id)=/.test(low)) {
+      low.startsWith("infohash://") || /(?:^|[?&])(?:infohash|content_id)=/.test(low) ||
+      isAceGatewayUrl(low)) {
     return { kind: "acestream", checkable: false };
   }
   if (/(?:^|\.)youtube\.com$/.test(hostOf(low)) || hostOf(low) === "youtu.be" ||
@@ -154,7 +188,13 @@ export async function probeUrl(rawUrl, deps = {}) {
   const cls = deps.classify || classifyUrl(rawUrl);
   const startNow = deps.now ? deps.now() : Date.now();
   const nowFn = deps.now || (() => Date.now());
-  let current = rawUrl, redirects = 0, subrequests = 0, lastStatus = 0;
+  // Pixeldrain: indirme ucu (?download + Range) yerine OTORİTER varlık ucu (/info) ile doğrula.
+  // pd!=null iken hard-DEAD kapatılır (soft) → tek seferlik 404 silmez, 3-strike korunur.
+  const pd = pixeldrainProbe(rawUrl);
+  const reqHeaders = pd
+    ? pd.headers
+    : { "User-Agent": "Mozilla/5.0 (SmartTV) SilaTV-HealthBot/1.0", "Accept": "*/*", "Range": "bytes=0-2047" };
+  let current = pd ? pd.url : rawUrl, redirects = 0, subrequests = 0, lastStatus = 0;
   try {
     while (true) {
       const controller = new AbortController();
@@ -164,7 +204,7 @@ export async function probeUrl(rawUrl, deps = {}) {
         subrequests++;
         resp = await fetchImpl(current, {
           method: "GET", redirect: "manual", signal: controller.signal,
-          headers: { "User-Agent": "Mozilla/5.0 (SmartTV) SilaTV-HealthBot/1.0", "Accept": "*/*", "Range": "bytes=0-2047" },
+          headers: reqHeaders,
         });
       } finally { clearTimeout(timer); }
       lastStatus = resp.status | 0;
@@ -179,7 +219,9 @@ export async function probeUrl(rawUrl, deps = {}) {
         catch (_) { looksLikeM3U = false; }
       }
       const verdict = classifyResponse(lastStatus, { isM3U8: cls.isM3U8, looksLikeM3U });
-      return { ok: verdict.ok, hard: verdict.hard, httpStatus: lastStatus, responseTimeMs: Math.max(0, nowFn() - startNow), redirects, subrequests };
+      // Pixeldrain (pd): otoriter /info ucu bile olsa 404'ü hard-DEAD yapma → 3-strike'a bırak (grace).
+      const hard = pd ? false : verdict.hard;
+      return { ok: verdict.ok, hard, httpStatus: lastStatus, responseTimeMs: Math.max(0, nowFn() - startNow), redirects, subrequests };
     }
   } catch (e) {
     const isAbort = e && (e.name === "AbortError" || /abort/i.test(String(e.message || "")));
