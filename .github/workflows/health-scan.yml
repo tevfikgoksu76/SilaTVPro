@@ -43,6 +43,7 @@ jobs:
           OUT_DIR: out
           CONCURRENCY: "100"
           LIMIT: ${{ github.event.inputs.limit || '0' }}
+          TTL_MS: "0"
         run: node tools/health-scan/scan.mjs
 
       - name: Snapshot + state'i KV'ye yükle
