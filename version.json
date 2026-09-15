@@ -1,17 +1,21 @@
 {
-  "versionCode": 35,
-  "versionName": "4.0.5",
-  "releaseDate": "2026-09-09",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.5/SilaTV_PRO_v4.0.5.apk",
-  "apkSizeBytes": 19960141,
-  "sha256": "40a35022da954a7bb17061323986fd1321ff0a6969be277741df1c6d06715366",
+  "versionCode": 36,
+  "versionName": "4.0.6",
+  "releaseDate": "2026-09-15",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.6/SilaTV_PRO_v4.0.6_FINAL_signed.apk",
+  "apkSizeBytes": 19993599,
+  "sha256": "4094d8acb5a6568439a9e5c136a0cfc91a7e4f5c35b970a52705b46b8da6fd18",
   "mandatory": false,
   "changes": [
-    "🚀 Ölü bağlantılar otomatik temizleniyor",
-    "🔄 M3U listesi daha temiz ve güncel",
-    "🛡️ Geçici bağlantı hataları korunuyor",
-    "🎬 Player 3.0 stabil",
-    "▶️ YouTube desteği devam ediyor",
-    "💚 Daha stabil ve akıcı kullanım"
+    "⚡ Daha hızlı uygulama başlangıcı ve Android TV performans iyileştirmeleri",
+    "🌍 World TV için otomatik ölü kanal filtreleme",
+    "📺 Daha akıcı kanal geçişleri ve oynatma kararlılığı",
+    "🎞️ Video kalite seçenekleri: 1080p / 720p / 480p / Source",
+    "📋 EPG performans optimizasyonu",
+    "📚 Diziler için daha doğru bölüm/sezon düzenleme",
+    "🧭 Android TV D-pad navigasyon iyileştirmeleri",
+    "💾 Bellek ve playlist önbelleği optimizasyonları",
+    "🔄 Güncelleme ekranı ve güncelleme butonu iyileştirildi",
+    "🛡️ Genel stabilite ve performans iyileştirmeleri"
   ]
 }
