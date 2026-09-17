@@ -47,6 +47,20 @@ function isAceGatewayUrl(low) {
 }
 
 /**
+ * i.mjh.nz "/.r/" REDIRECTOR kaynağı mı? (dış runner'dan GÜVENİLİR HTTP-check YAPILAMAZ → check'e SOKULMAMALI)
+ * Kapsam: YALNIZ scheme + host `i.mjh.nz` + yol öneki `/.r/` (Matt Huisman FAST redirect ucu).
+ * NEDEN: Bu redirector'lar AU coğrafi-kilitli FAST hedeflerine (7plus/9Now/SBS/Amagi…) 302 döner. Dış job
+ * (GitHub Actions, US/datacenter) hedefe erişemediği için probe timeout/neterr (ya da redirector 404'ü) verir →
+ * 3-strike sonrası YANLIŞLIKLA DEAD olur ve Australia FAST kanalları clean snapshot'tan düşer. Bu, AceStream
+ * loopback gateway'i ile AYNI SINIF sorundur (bkz. isAceGatewayUrl / "84 kayıt"); ÇÖZÜM DE AYNI: checkable=false
+ * → HTTP health-check'e girmez → asla DEAD işaretlenmez → clean'de KALIR. 3-strike/TTL/LIMIT/UNKNOWN GENEL
+ * mantığı DEĞİŞMEZ. Yol/host tabanlı bu kontrol normal HTTP kanallarına over-match ETMEZ (yalnız i.mjh.nz + /.r/).
+ */
+function isMjhRedirector(low) {
+  return /^https?:\/\/i\.mjh\.nz\/\.r\//.test(String(low));
+}
+
+/**
  * Pixeldrain indirme URL'ini OTORİTER "varlık" ucuna (/info) çeviren probe hedefi döndürür (yoksa null).
  * NEDEN: `/api/file/<id>?download` ucu Range/UA/geçici indirme hatası nedeniyle var olan dosya için bile
  * 404/hata dönebiliyordu → `classifyResponse` 404'ü `hard:true` (anında DEAD) sayıp geçerli filmleri siliyordu.
@@ -92,6 +106,11 @@ export function classifyUrl(rawUrl) {
       low.startsWith("infohash://") || /(?:^|[?&])(?:infohash|content_id)=/.test(low) ||
       isAceGatewayUrl(low)) {
     return { kind: "acestream", checkable: false };
+  }
+  // i.mjh.nz "/.r/" redirector'ları: dış runner AU-geo hedefe erişemez → yanlış DEAD. Ace-gateway ile
+  // AYNI çözüm: HTTP-check'e sokma (checkable=false) → asla DEAD olmaz, clean'de KALIR. Yalnız bu kaynak.
+  if (isMjhRedirector(low)) {
+    return { kind: "mjh_redirect", checkable: false };
   }
   if (/(?:^|\.)youtube\.com$/.test(hostOf(low)) || hostOf(low) === "youtu.be" ||
       low.includes("youtube.com/") || low.includes("youtu.be/") ||
