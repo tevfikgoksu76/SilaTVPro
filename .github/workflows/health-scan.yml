@@ -45,15 +45,43 @@ jobs:
           LIMIT: ${{ github.event.inputs.limit || '0' }}
         run: node tools/health-scan/scan.mjs
 
-      - name: Snapshot + state'i KV'ye yükle
+      - name: Snapshot (chunked + atomic manifest) + state'i KV'ye yükle
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          set -euo pipefail
           NS="${{ secrets.CF_KV_NAMESPACE_ID }}"
-          npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:clean --path out/clean.m3u
+
+          # 0) clean.m3u'yu byte-safe chunk'lara böl (KV'ye YAZMAZ)
+          node tools/health-scan/split-clean.mjs
+
+          # 1) mevcut aktif slotu oku -> PASIF slotu seç (yoksa A)
+          CUR="$(npx --yes wrangler@3 kv key get --namespace-id "$NS" snap:clean:manifest 2>/dev/null || true)"
+          ACTIVE="$(printf '%s' "$CUR" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(((JSON.parse(s)||{}).active)||"")}catch{console.log("")}})')"
+          if [ "$ACTIVE" = "A" ]; then SLOT="B"; else SLOT="A"; fi
+          echo "aktif slot=$ACTIVE -> yeni slot=$SLOT"
+
+          # 2) PASIF slota TÜM chunk'ları yaz (biri başarısızsa set -e ile job düşer; manifest'e DOKUNULMAZ)
+          N="$(node -e 'console.log(JSON.parse(require("fs").readFileSync("out/clean-parts.json","utf8")).chunks)')"
+          i=0
+          while [ "$i" -lt "$N" ]; do
+            f="$(printf 'out/chunks/%03d' "$i")"
+            npx --yes wrangler@3 kv key put --namespace-id "$NS" "snap:clean:${SLOT}:${i}" --path "$f"
+            i=$((i+1))
+          done
+
+          # 3) stats + hstate (MEVCUT davranış — değişmedi)
           npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:stats --path out/stats.json
-          npx --yes wrangler@3 kv key put --namespace-id "$NS" hstate --path state.json
+          npx --yes wrangler@3 kv key put --namespace-id "$NS" hstate     --path state.json
+
+          # 4) manifest'i DOĞRULA + üret (A/B, chunks>0, totalBytes>0, sha256=64hex). Geçersizse job DÜŞER, manifest güncellenmez.
+          SLOT="$SLOT" node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("out/clean-parts.json","utf8"));const s=process.env.SLOT;const ok=(s==="A"||s==="B")&&Number.isInteger(p.chunks)&&p.chunks>0&&Number.isInteger(p.totalBytes)&&p.totalBytes>0&&typeof p.sha256==="string"&&p.sha256.length===64;if(!ok){console.error("HATA manifest dogrulamasi basarisiz:",JSON.stringify({s,chunks:p.chunks,totalBytes:p.totalBytes,sha256:p.sha256}));process.exit(1);}fs.writeFileSync("out/manifest.json",JSON.stringify({active:s,chunks:p.chunks,chunkBytes:p.chunkBytes,totalBytes:p.totalBytes,sha256:p.sha256,generatedAt:p.generatedAt}));console.log("OK manifest hazir:",fs.readFileSync("out/manifest.json","utf8"));'
+
+          # 5) EN SON: manifest'i yaz (ATOMIK switch). Worker yalnızca manifest'in gösterdiği slotu servis eder.
+          npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:clean:manifest --path out/manifest.json
+
+          # NOT: eski tekil snap:clean'e DOKUNULMAZ (fallback olarak korunur, silinmez).
 
       - name: Özet
         run: cat out/stats.json
