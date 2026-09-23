@@ -6,6 +6,7 @@
   "apkSizeBytes": 20049534,
   "sha256": "6e3ab0bf29477791d76822b55801797f57ee677ae36fefe4d03c300268ff2239",
   "mandatory": false,
+  "changes": [
     "🚀 Daha hızlı açılış ve geliştirilmiş performans",
     "🌍 World TV için daha güvenli otomatik ölü ve bozuk kanal filtreleme",
     "📺 Canlı TV kanalları için arka planda sağlık kontrolü",
