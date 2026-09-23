@@ -1,12 +1,11 @@
 {
-  "versionCode": 38,
-  "versionName": "4.0.8",
-  "releaseDate": "2026-09-18",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.8/SilaTV_PRO_v4.0.8_FINAL_signed.apk",
-  "apkSizeBytes": 20030768,
-  "sha256": "27003f5b58d50d957de5003be39f7f1be1906e1817cd0d0a381f794bf37e8d2c",
+  "versionCode": 39,
+  "versionName": "4.0.9",
+  "releaseDate": "2026-09-23",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.0.9/SilaTV_PRO_v4.0.9_FINAL_signed.apk",
+  "apkSizeBytes": 20049534,
+  "sha256": "6e3ab0bf29477791d76822b55801797f57ee677ae36fefe4d03c300268ff2239",
   "mandatory": false,
-  "changes": [
     "🚀 Daha hızlı açılış ve geliştirilmiş performans",
     "🌍 World TV için daha güvenli otomatik ölü ve bozuk kanal filtreleme",
     "📺 Canlı TV kanalları için arka planda sağlık kontrolü",
