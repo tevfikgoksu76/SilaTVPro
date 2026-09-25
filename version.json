@@ -1,23 +1,20 @@
 {
-  "versionCode": 40,
-  "versionName": "4.1.0",
-  "releaseDate": "2026-09-24",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.0/SilaTV_PRO_v4.1.0.apk",
-  "apkSizeBytes": 20053843,
-  "sha256": "ABB8F4AD0ECB929CBB5DE210C9443DB92883DEF99D5100B5E17447A3048DAAC2",
+  "versionCode": 41,
+  "versionName": "4.1.1",
+  "releaseDate": "2026-09-25",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.1/SilaTV_PRO_v4.1.1.apk",
+  "apkSizeBytes": 20071023,
+  "sha256": "DF5D3A531F804C40A60CF753DDC451FEB1D353983311A3132030EEA462273FFE",
   "mandatory": false,
   "changes": [
-    "🚀 Daha hızlı açılış ve geliştirilmiş performans",
-    "🌍 World TV için daha güvenli otomatik ölü ve bozuk kanal filtreleme",
-    "📺 Canlı TV kanalları için arka planda sağlık kontrolü",
-    "🎬 Film içerikleri için arka planda bağlantı doğrulaması",
-    "📺 Dizilerde yalnızca seçilen sezonun bölümlerinin kontrol edilmesi",
-    "🆕 Yeni Eklenenler için çalışmayan içeriklerin doğrulanması",
-    "🛡️ Yeni kanallarda çalışmayan bağlantıların otomatik karantinaya alınması",
-    "▶️ Daha akıcı kanal geçişleri ve oynatma kararlılığı",
-    "🎮 Android TV D-pad ve odak geçişlerinde iyileştirmeler",
-    "🧠 Bellek ve playlist önbelleği optimizasyonları",
-    "⚡ Büyük içerik listelerinde daha stabil çalışma",
-    "🔄 Güncelleme ekranı ve güncelleme sistemi iyileştirildi"
+    "📊 Anonim kullanım istatistikleri eklendi",
+    "📺 Sistem Bilgisi bölümü geliştirildi",
+    "🆕 Yeni Eklenenler ve içerik takibi iyileştirildi",
+    "🔎 Arama ve kullanım deneyimi geliştirildi",
+    "⚙️ Uygulama performansı ve içerik yönetimi iyileştirildi",
+    "🛡️ Bildirim alınan içerikler M3U listesinden kaldırıldı",
+    "🚫 AceStream kanalları güncel M3U listesinden çıkarıldı",
+    "👁️ AceStream menüsü ana ekranda gizlendi; teknik altyapı uygulamadan silinmedi",
+    "📱 Android Telefon, Android TV, TV Box, Tablet ve Google TV desteği korunmuştur"
   ]
 }
