@@ -1,20 +1,20 @@
 {
-  "versionCode": 42,
-  "versionName": "4.1.2",
-  "releaseDate": "2026-10-01",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.2/SilaTV_PRO_4.1.2.apk",
-  "apkSizeBytes": 20082338,
-  "sha256": "177bda1ab8e6b249328a6785bd81f242830a063090e72ce34ef605b0074e5f59",
+  "versionCode": 43,
+  "versionName": "4.1.3",
+  "releaseDate": "2026-10-08",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.3/SilaTV_PRO_4.1.3.apk",
+  "apkSizeBytes": 20169106,
+  "sha256": "8751e79372afd20bd055e8986096e611d656b5196a990414af30e3ed90348565",
   "mandatory": false,
   "changes": [
-    "⭐ Dünya TV favorileri ana Favoriler ekranına entegre edildi",
-    "💾 Dünya TV favorileri uygulama yeniden başlatıldığında korunur",
-    "🔄 M3U güncellemelerinden bağımsız Dünya TV favori sistemi",
-    "❤️ Normal M3U Favorileri korunmuştur",
-    "📺 Film, Dizi, Canlı TV, Platformlar ve Dünya TV sistemleri korunmuştur",
-    "⚡ Uygulama stabilitesi ve Android TV kullanım deneyimi korunmuştur",
-    "🚫 Genel sürümde AceStream kanalları bulunmamaktadır",
-    "⚖️ AceStream içerikleri telif hakları ve kullanım koşulları nedeniyle Genel sürümden ayrı tutulmaktadır",
-    "📱 Android Telefon, Android TV, TV Box, Tablet ve Google TV desteği korunmuştur"
+    "⭐ Favori Platformlar eklendi",
+    "🎬 Platform içinden Film ve Dizi favorileme eklendi",
+    "↔️ Favoriler için Dikey / Yatay görünüm seçeneği eklendi",
+    "🔎 Smart Search / Akıllı Arama geliştirildi",
+    "🕘 Son İzlenenler özelliği eklendi",
+    "🕌 Mekke ve Medine canlı yayınları eklendi",
+    "⚡ Daha hızlı ve akıcı Android TV deneyimi",
+    "🚫 AceStream ve ilgili entegrasyonlar telif bildirimleri nedeniyle kaldırıldı",
+    "📺 Android TV ve Google TV uyumluluğu korunmuştur"
   ]
 }
