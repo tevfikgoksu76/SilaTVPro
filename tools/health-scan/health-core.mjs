@@ -61,6 +61,17 @@ function isMjhRedirector(low) {
 }
 
 /**
+ * Aloula Mekke/Medine placeholder host'u mu? (AloulaResolver YALNIZ oynatmada gercek HLS'e cevirir.)
+ * `aloula.local` DNS'te YOKTUR -> dis runner'dan asla erisilemez -> HTTP health-check'e SOKULMAMALI.
+ * isAceGatewayUrl / isMjhRedirector ile AYNI sinif sorun; cozum de AYNI: checkable=false -> asla DEAD
+ * olmaz -> clean snapshot'ta KALIR. Yalniz host === "aloula.local" (+ aloula:// semasi); gercek HTTP
+ * kanallarina over-match ETMEZ (tam-host esitligi; substring degil).
+ */
+function isAloulaPlaceholder(low) {
+  return hostOf(low) === "aloula.local" || /^aloula:\/\//.test(String(low));
+}
+
+/**
  * Pixeldrain indirme URL'ini OTORİTER "varlık" ucuna (/info) çeviren probe hedefi döndürür (yoksa null).
  * NEDEN: `/api/file/<id>?download` ucu Range/UA/geçici indirme hatası nedeniyle var olan dosya için bile
  * 404/hata dönebiliyordu → `classifyResponse` 404'ü `hard:true` (anında DEAD) sayıp geçerli filmleri siliyordu.
@@ -111,6 +122,12 @@ export function classifyUrl(rawUrl) {
   // AYNI çözüm: HTTP-check'e sokma (checkable=false) → asla DEAD olmaz, clean'de KALIR. Yalnız bu kaynak.
   if (isMjhRedirector(low)) {
     return { kind: "mjh_redirect", checkable: false };
+  }
+  // Aloula Mekke/Medine placeholder'i (aloula.local): dis runner cozemez -> yanlis DEAD. Ace-gateway /
+  // mjh redirector ile AYNI cozum: HTTP-check'e sokma -> asla DEAD olmaz -> clean'de KALIR. Gercek HLS'i
+  // yalniz AloulaResolver oynatmada verir. Yalniz bu host.
+  if (isAloulaPlaceholder(low)) {
+    return { kind: "aloula", checkable: false };
   }
   if (/(?:^|\.)youtube\.com$/.test(hostOf(low)) || hostOf(low) === "youtu.be" ||
       low.includes("youtube.com/") || low.includes("youtu.be/") ||
