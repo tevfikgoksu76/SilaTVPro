@@ -9,6 +9,14 @@ on:
         description: "Bu run'da en çok kaç URL kontrol edilsin? İlk bootstrap için 8000 önerilir."
         required: false
         default: "8000"
+      force_publish:
+        description: "YAYIN korumasini (kucilme/no-op) ATLA. YALNIZ kurtarma run'i icin '1' yap; normalde '0'."
+        required: false
+        default: "0"
+      allow_bootstrap:
+        description: "GERCEK ILK KURULUM: onceki hstate/snapshot YOKKEN bos state + ilk yayina izin ver. Normalde '0'."
+        required: false
+        default: "0"
 
 concurrency:
   group: silatv-health-scan
@@ -27,13 +35,70 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Önceki state'i KV'den indir (yoksa boş)
+      - name: Önceki state'i KV'den indir (hstate ZORUNLU; snap:stats dogrulanir)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ALLOW_BOOTSTRAP: ${{ github.event.inputs.allow_bootstrap || '0' }}
         run: |
-          npx --yes wrangler@3 kv key get --namespace-id "${{ secrets.CF_KV_NAMESPACE_ID }}" hstate > state.json 2>/dev/null || echo '{}' > state.json
-          test -s state.json || echo '{}' > state.json
+          set -eo pipefail
+          NS="${{ secrets.CF_KV_NAMESPACE_ID }}"
+          ALLOW_BOOTSTRAP="${ALLOW_BOOTSTRAP:-0}"
+
+          # KV okumasini UC duruma ayir: DATA (veri var) | EMPTY (KESIN "yok") | FAIL (network/auth/format).
+          # Yalniz KESIN "yok" ilk-kurulum adayidir; FAIL ASLA ilk kurulum sayilmaz.
+          read_kv () {  # $1=key  $2=outfile -> stdout: DATA|EMPTY|FAIL
+            if npx --yes wrangler@3 kv key get --namespace-id "$NS" "$1" > "$2" 2>"$2.err"; then
+              echo DATA
+            elif grep -qiE 'value not found|not[ _-]?found|does not exist|10009' "$2.err"; then
+              echo EMPTY
+            else
+              echo FAIL
+            fi
+          }
+
+          HSTATE_STATUS="$(read_kv hstate state.json)"
+          SNAP_STATUS="$(read_kv snap:stats prev_stats.json)"
+          echo "HSTATE=$HSTATE_STATUS  SNAP_STATS=$SNAP_STATUS  ALLOW_BOOTSTRAP=$ALLOW_BOOTSTRAP"
+
+          # --- hstate FAIL: gercek okuma hatasi -> bootstrap BILE gecersiz -> DUR (tarama+yayin yok). ---
+          if [ "$HSTATE_STATUS" = "FAIL" ]; then
+            echo "::error::hstate KV okumasi BASARISIZ (network/auth/format). Ilk kurulum SAYILMAZ -> DUR."; cat state.json.err || true; exit 1
+          fi
+
+          BOOT=0
+          if [ "$HSTATE_STATUS" = "DATA" ]; then
+            # gecerli, bos-olmayan JSON nesnesi dogrula (bozuk JSON -> DUR, ilk kurulum SAYILMAZ)
+            KC="$(node -e 'try{const s=JSON.parse(require("fs").readFileSync("state.json","utf8"));process.stdout.write(String(s&&typeof s==="object"&&!Array.isArray(s)?Object.keys(s).length:-1))}catch(e){process.stdout.write("-1")}')"
+            if [ "$KC" = "-1" ]; then echo "::error::hstate bozuk JSON -> DUR"; exit 1; fi
+            if [ "$KC" = "0" ];  then echo "::error::hstate bos nesne -> DUR"; exit 1; fi
+            echo "hstate kayit: $KC"
+          else
+            # HSTATE_STATUS=EMPTY (KESIN yok). Ilk kurulum ancak: allow_bootstrap=1 VE snap:stats de KESIN yok.
+            if [ "$ALLOW_BOOTSTRAP" != "1" ]; then echo "::error::hstate YOK (EMPTY) ve allow_bootstrap!=1 -> DUR"; exit 1; fi
+            if [ "$SNAP_STATUS" = "FAIL" ]; then echo "::error::bootstrap istendi ama snap:stats okumasi BASARISIZ -> ilk kurulum DOGRULANAMAZ -> DUR"; exit 1; fi
+            if [ "$SNAP_STATUS" = "DATA" ]; then echo "::error::hstate YOK ama snap:stats VAR -> tutarsiz, ilk kurulum DEGIL -> DUR"; exit 1; fi
+            echo '{}' > state.json
+            BOOT=1
+            echo "GERCEK ILK KURULUM dogrulandi (hstate+snap:stats KESIN yok, allow_bootstrap=1)"
+          fi
+
+          # --- snap:stats durum -> PREV_STATS_OK yalniz GERCEK read FAILURE'da 0 (DATA/EMPTY = okuma basarili=1) ---
+          if [ "$SNAP_STATUS" = "FAIL" ]; then
+            PREV_STATS_OK=0
+            echo "::warning::snap:stats okumasi BASARISIZ -> PREV_STATS_OK=0 (scan.mjs yayini DURDURUR; bootstrap/force asamaz)"; cat prev_stats.json.err || true
+          else
+            PREV_STATS_OK=1
+          fi
+          PK=""
+          if [ "$SNAP_STATUS" = "DATA" ]; then
+            PK="$(node -e 'try{const s=JSON.parse(require("fs").readFileSync("prev_stats.json","utf8"));const k=s&&s.clean&&s.clean.kept;process.stdout.write(Number.isFinite(k)?String(k):"")}catch(e){process.stdout.write("")}')"
+          fi
+          # NOT: scan.mjs'e GECEN ALLOW_BOOTSTRAP = BOOT (workflow'un DOGRULADIGI deger), ham girdi DEGIL.
+          echo "PREV_KEPT=$PK"               >> "$GITHUB_ENV"
+          echo "PREV_STATS_OK=$PREV_STATS_OK" >> "$GITHUB_ENV"
+          echo "ALLOW_BOOTSTRAP=$BOOT"        >> "$GITHUB_ENV"
+          echo "OZET: HSTATE=$HSTATE_STATUS SNAP=$SNAP_STATUS PREV_KEPT=${PK:-yok} PREV_STATS_OK=$PREV_STATS_OK BOOT=$BOOT"
 
       - name: Health scan
         env:
@@ -43,6 +108,11 @@ jobs:
           OUT_DIR: out
           CONCURRENCY: "100"
           LIMIT: ${{ github.event.inputs.limit || '0' }}
+          # PREV_KEPT / PREV_STATS_OK / ALLOW_BOOTSTRAP: onceki adimda $GITHUB_ENV'e yazildi ->
+          # ayni job'un SONRAKI adimlarina OTOMATIK env olarak miras kalir; scan.mjs process.env'den okur.
+          # Acik "${{ env.X }}" mapping'i gereksiz (ifade-baglami cozumune bagimli), kullanilmadi.
+          MIN_PUBLISH_RATIO: "0.80"
+          FORCE_PUBLISH: ${{ github.event.inputs.force_publish || '0' }}
         run: node tools/health-scan/scan.mjs
 
       - name: Snapshot (chunked + atomic manifest) + state'i KV'ye yükle
@@ -53,14 +123,53 @@ jobs:
           set -euo pipefail
           NS="${{ secrets.CF_KV_NAMESPACE_ID }}"
 
+          # YAYIN KAPISI: scan.mjs GUVENLI bulduysa out/publish_ok yazar. Yoksa KV'ye HIC yazma ->
+          # aktif snapshot + manifest DEGISMEDEN korunur (kucilme/no-op/bos clean yayilmaz).
+          if [ ! -f out/publish_ok ]; then
+            echo "PUBLISH ATLANDI (out/publish_ok yok) -> aktif snapshot + manifest KORUNUR, KV'ye yazilmiyor"
+            exit 0
+          fi
+
           # 0) clean.m3u'yu byte-safe chunk'lara böl (KV'ye YAZMAZ)
           node tools/health-scan/split-clean.mjs
 
-          # 1) mevcut aktif slotu oku -> PASIF slotu seç (yoksa A)
-          CUR="$(npx --yes wrangler@3 kv key get --namespace-id "$NS" snap:clean:manifest 2>/dev/null || true)"
-          ACTIVE="$(printf '%s' "$CUR" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(((JSON.parse(s)||{}).active)||"")}catch{console.log("")}})')"
-          if [ "$ACTIVE" = "A" ]; then SLOT="B"; else SLOT="A"; fi
-          echo "aktif slot=$ACTIVE -> yeni slot=$SLOT"
+          # 1) AKTIF SLOTU GUVENLI BELIRLE: manifest okumasini UC duruma ayir (DATA / EMPTY / FAIL).
+          #    - FAIL (network/auth/format): HICBIR KV yazmadan DUR (hata durumu "bos manifest" sayilmaz).
+          #    - DATA: active KESIN A ya da B olmali; degilse/bozuk JSON -> DUR (aktif slot belirlenemiyor -> YAZMA).
+          #    - EMPTY (manifest KESIN yok): yalniz DOGRULANMIS ilk kurulumda (BOOT=1) A'ya yaz; aksi halde DUR.
+          #    FORCE_PUBLISH bu adimda kullanilmaz; ALLOW_BOOTSTRAP yalniz EMPTY'yi acar, FAIL'i ASLA.
+          ALLOW_BOOTSTRAP="${ALLOW_BOOTSTRAP:-0}"
+          if npx --yes wrangler@3 kv key get --namespace-id "$NS" snap:clean:manifest > cur_manifest.json 2>man.err; then
+            MAN_STATUS=DATA
+          elif grep -qiE 'value not found|not[ _-]?found|does not exist|10009' man.err; then
+            MAN_STATUS=EMPTY
+          else
+            MAN_STATUS=FAIL
+          fi
+          echo "manifest okuma durumu: $MAN_STATUS"
+
+          if [ "$MAN_STATUS" = "FAIL" ]; then
+            echo "::error::snap:clean:manifest OKUNAMADI (network/auth/format). Aktif slot bilinemiyor -> HICBIR KV yazilmadan DUR."; cat man.err || true; exit 1
+          fi
+
+          SLOT=""
+          if [ "$MAN_STATUS" = "DATA" ]; then
+            ACTIVE="$(node -e 'try{const m=JSON.parse(require("fs").readFileSync("cur_manifest.json","utf8"));const a=m&&m.active;process.stdout.write(a==="A"||a==="B"?a:"__BAD__")}catch(e){process.stdout.write("__PARSE_ERR__")}')"
+            if [ "$ACTIVE" = "__PARSE_ERR__" ]; then echo "::error::manifest BOZUK JSON -> DUR (yazma yok)"; exit 1; fi
+            if [ "$ACTIVE" = "A" ]; then SLOT="B"
+            elif [ "$ACTIVE" = "B" ]; then SLOT="A"
+            else echo "::error::manifest var ama active A/B degil (aktif slot belirlenemiyor) -> DUR (yazma yok)"; exit 1
+            fi
+            echo "aktif slot=$ACTIVE -> pasif slota yazilacak=$SLOT"
+          else
+            # MAN_STATUS=EMPTY (manifest KESIN yok)
+            if [ "$ALLOW_BOOTSTRAP" = "1" ]; then
+              SLOT="A"; echo "manifest yok + DOGRULANMIS ilk kurulum (BOOT=1) -> ilk slot=A"
+            else
+              echo "::error::snap:clean:manifest YOK ama ilk kurulum DEGIL (allow_bootstrap!=1) -> DUR (yazma yok)"; exit 1
+            fi
+          fi
+          if [ "$SLOT" != "A" ] && [ "$SLOT" != "B" ]; then echo "::error::slot belirlenemedi -> DUR (yazma yok)"; exit 1; fi
 
           # 2) PASIF slota TÜM chunk'ları yaz (biri başarısızsa set -e ile job düşer; manifest'e DOKUNULMAZ)
           N="$(node -e 'console.log(JSON.parse(require("fs").readFileSync("out/clean-parts.json","utf8")).chunks)')"
