@@ -52,9 +52,13 @@ jobs:
           # KV okumasini UC duruma ayir: DATA (veri var) | EMPTY (KESIN "yok") | FAIL (network/auth/format).
           # Yalniz KESIN "yok" ilk-kurulum adayidir; FAIL ASLA ilk kurulum sayilmaz.
           read_kv () {  # $1=key  $2=outfile -> stdout: DATA|EMPTY|FAIL
+            # EMPTY YALNIZ wrangler'in KESIN "anahtar yok" mesajiyla: tam "Value not found" ibaresi
+            # (bu ortamda GOZLENEN gercek cikti). Genel "not found", numerik kod (10009), "does not exist",
+            # DNS (ENOTFOUND), timeout, auth ve BILINMEYEN hatalar -> FAIL (hicbir KV yazma).
+            # NOT: gevsek 'not[ _-]?found' deseni "ENOTFOUND" DNS hatasini da eslerdi; bu yuzden tam ibare.
             if npx --yes wrangler@3 kv key get --namespace-id "$NS" "$1" > "$2" 2>"$2.err"; then
               echo DATA
-            elif grep -qiE 'value not found|not[ _-]?found|does not exist|10009' "$2.err"; then
+            elif grep -qiE 'value not found' "$2.err"; then
               echo EMPTY
             else
               echo FAIL
@@ -171,9 +175,12 @@ jobs:
           #    - EMPTY (manifest KESIN yok): yalniz DOGRULANMIS ilk kurulumda (BOOT=1) A'ya yaz; aksi halde DUR.
           #    FORCE_PUBLISH bu adimda kullanilmaz; ALLOW_BOOTSTRAP yalniz EMPTY'yi acar, FAIL'i ASLA.
           ALLOW_BOOTSTRAP="${ALLOW_BOOTSTRAP:-0}"
+          # EMPTY YALNIZ wrangler'in KESIN "anahtar yok" mesajiyla: tam "Value not found" ibaresi.
+          # Genel "not found", 10009, "does not exist", DNS (ENOTFOUND), timeout, auth, bilinmeyen -> FAIL.
+          # (gevsek 'not[ _-]?found' deseni "ENOTFOUND" DNS hatasini da eslerdi -> tam ibare kullanildi.)
           if npx --yes wrangler@3 kv key get --namespace-id "$NS" snap:clean:manifest > cur_manifest.json 2>man.err; then
             MAN_STATUS=DATA
-          elif grep -qiE 'value not found|not[ _-]?found|does not exist|10009' man.err; then
+          elif grep -qiE 'value not found' man.err; then
             MAN_STATUS=EMPTY
           else
             MAN_STATUS=FAIL
