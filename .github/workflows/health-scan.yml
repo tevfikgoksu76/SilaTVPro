@@ -17,6 +17,10 @@ on:
         description: "GERCEK ILK KURULUM: onceki hstate/snapshot YOKKEN bos state + ilk yayina izin ver. Normalde '0'."
         required: false
         default: "0"
+      dry_run:
+        description: "GUVENLI TEST MODU: '1' iken Cloudflare KV'ye HICBIR yazma yapilmaz (yalniz raporlanir). Gercek yayin icin '0'."
+        required: false
+        default: "1"
 
 concurrency:
   group: silatv-health-scan
@@ -119,12 +123,40 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || '1' }}
         run: |
           set -euo pipefail
           NS="${{ secrets.CF_KV_NAMESPACE_ID }}"
 
+          # --- DRY_RUN (GUVENLI TEST MODU) DOGRULAMASI: YAZMA ASAMASINDAN ONCE ---
+          # Gecersiz deger -> yazma asamasina GECMEDEN job DUSER. Varsayilan "1" (guvenli).
+          DRY_RUN="${DRY_RUN:-1}"
+          if [ "$DRY_RUN" != "0" ] && [ "$DRY_RUN" != "1" ]; then
+            echo "::error::Gecersiz DRY_RUN='$DRY_RUN' (yalniz '0' veya '1'). Yazma asamasina GECILMEDEN DUR."; exit 1
+          fi
+          if [ "$DRY_RUN" = "1" ]; then
+            echo "=================================================================="
+            echo " DRY_RUN=1 (GUVENLI TEST MODU) -> Cloudflare KV'ye HICBIR yazma YOK."
+            echo " Tum 'kv key put' islemleri (chunk/stats/hstate/manifest) yalniz RAPORLANIR."
+            echo " Mevcut snapshot, manifest, hstate ve snap:stats AYNEN KORUNUR."
+            echo "=================================================================="
+          fi
+
+          # KV YAZMA SARMALAYICI: DRY_RUN=1 iken gercek 'kv key put' CALISTIRMAZ, yalniz raporlar.
+          kvput () {  # $1=key ; kalan arg: wrangler put parametreleri ( or. --path <f>)
+            local key="$1"; shift
+            if [ "$DRY_RUN" = "1" ]; then
+              local info=""
+              if [ "${1:-}" = "--path" ] && [ -f "${2:-}" ]; then info=" ($(wc -c < "$2") bytes <- $2)"; fi
+              echo "[DRY_RUN] KV YAZMA ATLANDI: kv key put '$key'$info"
+              return 0
+            fi
+            npx --yes wrangler@3 kv key put --namespace-id "$NS" "$key" "$@"
+          }
+
           # YAYIN KAPISI: scan.mjs GUVENLI bulduysa out/publish_ok yazar. Yoksa KV'ye HIC yazma ->
           # aktif snapshot + manifest DEGISMEDEN korunur (kucilme/no-op/bos clean yayilmaz).
+          # NOT: DRY_RUN=1 iken asagidaki tum yazmalar zaten no-op'tur; publish_ok VARSA bile gercek yayin OLMAZ.
           if [ ! -f out/publish_ok ]; then
             echo "PUBLISH ATLANDI (out/publish_ok yok) -> aktif snapshot + manifest KORUNUR, KV'ye yazilmiyor"
             exit 0
@@ -176,19 +208,21 @@ jobs:
           i=0
           while [ "$i" -lt "$N" ]; do
             f="$(printf 'out/chunks/%03d' "$i")"
-            npx --yes wrangler@3 kv key put --namespace-id "$NS" "snap:clean:${SLOT}:${i}" --path "$f"
+            kvput "snap:clean:${SLOT}:${i}" --path "$f"
             i=$((i+1))
           done
 
-          # 3) stats + hstate (MEVCUT davranış — değişmedi)
-          npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:stats --path out/stats.json
-          npx --yes wrangler@3 kv key put --namespace-id "$NS" hstate     --path state.json
+          # 3) stats + hstate (MEVCUT davranış — değişmedi; DRY_RUN=1 iken yalniz raporlanir)
+          kvput snap:stats --path out/stats.json
+          kvput hstate     --path state.json
 
           # 4) manifest'i DOĞRULA + üret (A/B, chunks>0, totalBytes>0, sha256=64hex). Geçersizse job DÜŞER, manifest güncellenmez.
           SLOT="$SLOT" node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("out/clean-parts.json","utf8"));const s=process.env.SLOT;const ok=(s==="A"||s==="B")&&Number.isInteger(p.chunks)&&p.chunks>0&&Number.isInteger(p.totalBytes)&&p.totalBytes>0&&typeof p.sha256==="string"&&p.sha256.length===64;if(!ok){console.error("HATA manifest dogrulamasi basarisiz:",JSON.stringify({s,chunks:p.chunks,totalBytes:p.totalBytes,sha256:p.sha256}));process.exit(1);}fs.writeFileSync("out/manifest.json",JSON.stringify({active:s,chunks:p.chunks,chunkBytes:p.chunkBytes,totalBytes:p.totalBytes,sha256:p.sha256,generatedAt:p.generatedAt}));console.log("OK manifest hazir:",fs.readFileSync("out/manifest.json","utf8"));'
 
           # 5) EN SON: manifest'i yaz (ATOMIK switch). Worker yalnızca manifest'in gösterdiği slotu servis eder.
-          npx --yes wrangler@3 kv key put --namespace-id "$NS" snap:clean:manifest --path out/manifest.json
+          #    DRY_RUN=1 iken bu ATOMIK GECIS de yapilmaz -> aktif slot DEGISMEZ (yalniz raporlanir).
+          if [ "$DRY_RUN" = "1" ]; then echo "[DRY_RUN] GERCEK YAYIN (manifest flip) ATLANDI -> aktif slot=${ACTIVE:-yok} DEGISMEDI, yeni slot=$SLOT yalniz TEST icin hazirlandi"; fi
+          kvput snap:clean:manifest --path out/manifest.json
 
           # NOT: eski tekil snap:clean'e DOKUNULMAZ (fallback olarak korunur, silinmez).
 
