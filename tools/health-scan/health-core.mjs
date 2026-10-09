@@ -20,6 +20,8 @@ export const HEALTH_CFG = {
   ST_TEMP: "TEMPORARY_FAILURE",
   ST_DEAD: "DEAD",
   ST_UNKNOWN: "UNKNOWN",
+  GUARD_FAIL_RATIO: 0.70,       // bir turda ok!==true orani bunu asarsa -> sonuclar state'e YAZILMAZ
+  GUARD_MIN_SAMPLES: 20,        // guard yalniz bu kadar kontrol olan turlarda gecerli (kucuk turlar muaf)
 };
 
 /* ---------------- küçük yardımcılar ---------------- */
@@ -159,7 +161,7 @@ export function classifyResponse(status, opts = {}) {
   if (s >= 300 && s < 400) return { ok: null, hard: false };
   if (s === 401 || s === 403 || s === 429 || s === 451) return { ok: null, hard: false };
   if (s === 404 || s === 410) return { ok: false, hard: true };
-  if (s >= 500 && s < 600) return { ok: false, hard: false };
+  if (s >= 500 && s < 600) return { ok: null, hard: false };   // 5xx gecici -> strike YOK (eski: ok:false)
   return { ok: null, hard: false };
 }
 
@@ -261,7 +263,8 @@ export async function probeUrl(rawUrl, deps = {}) {
     }
   } catch (e) {
     const isAbort = e && (e.name === "AbortError" || /abort/i.test(String(e.message || "")));
-    return { ok: false, hard: false, httpStatus: lastStatus || 0, responseTimeMs: Math.max(0, nowFn() - startNow), redirects, subrequests, error: isAbort ? "timeout" : ("neterr:" + (e && e.name || "error")) };
+    // neterr/timeout = GECICI (cogu prober'in kendi ag/DNS'i). strike YOK -> ok:null (eski: ok:false). error alani stats icin korunur.
+    return { ok: null, hard: false, httpStatus: lastStatus || 0, responseTimeMs: Math.max(0, nowFn() - startNow), redirects, subrequests, error: isAbort ? "timeout" : ("neterr:" + (e && e.name || "error")) };
   }
 }
 
@@ -322,21 +325,32 @@ export async function scanAll(masterText, prevState, opts = {}) {
   let toCheck = targets.filter((x) => { const p = state[x.key]; return !p || (t - (p.ts || 0) >= ttl); });
   if (limit && limit > 0) toCheck = toCheck.slice(0, limit);
 
-  let idx = 0, checked = 0, timeouts = 0, neterrs = 0;
+  let idx = 0, checked = 0, timeouts = 0, neterrs = 0, healthyThisRun = 0;
+  const updates = new Map();   // tur sonuclari; oran-guard'tan GECERSE state'e islenir
   async function worker() {
     while (idx < toCheck.length) {
       const cur = toCheck[idx++];
       const probe = await probeUrl(cur.url, { fetchImpl, classify: cur.cls, now: () => nowFn() });
       if (probe.error === "timeout") timeouts++;
       else if (probe.error && probe.error.startsWith("neterr")) neterrs++;
-      state[cur.key] = nextRecord(state[cur.key], probe, nowFn());
+      if (probe.ok === true) healthyThisRun++;
+      updates.set(cur.key, nextRecord(state[cur.key], probe, nowFn()));
       checked++;
     }
   }
   const pool = Array.from({ length: Math.max(1, Math.min(conc, toCheck.length || 1)) }, () => worker());
   await Promise.all(pool);
 
-  return { state, breakdown, checked, timeouts, neterrs, stats: computeStats(state, t) };
+  // ORAN-GUARD: bu turda basarisizlik (ok!==true) orani esigi asarsa, turun SONUCLARINI state'e YAZMA
+  // (gecici runner/DNS cokmesi tum katalogu DEAD yapmasin). Kucuk turlar muaf (GUARD_MIN_SAMPLES).
+  const failedThisRun = checked - healthyThisRun;
+  const guardTripped = checked >= HEALTH_CFG.GUARD_MIN_SAMPLES &&
+                       failedThisRun > checked * HEALTH_CFG.GUARD_FAIL_RATIO;
+  if (!guardTripped) {
+    for (const [k, rec] of updates) state[k] = rec;
+  }
+
+  return { state, breakdown, checked, timeouts, neterrs, guardTripped, stats: computeStats(state, t) };
 }
 
 /**
