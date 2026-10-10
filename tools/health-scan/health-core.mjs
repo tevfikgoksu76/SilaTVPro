@@ -74,6 +74,15 @@ function isAloulaPlaceholder(low) {
 }
 
 /**
+ * Vidmody embed/player URLs are not stable media endpoints for an external health probe.
+ * Exclude only the exact vidmody.com host and its subdomains; do not substring-match unrelated hosts.
+ */
+function isVidmodyEmbed(low) {
+  const h = hostOf(low).split(":")[0].replace(/^\[|\]$/g, "");
+  return h === "vidmody.com" || h.endsWith(".vidmody.com");
+}
+
+/**
  * Pixeldrain indirme URL'ini OTORİTER "varlık" ucuna (/info) çeviren probe hedefi döndürür (yoksa null).
  * NEDEN: `/api/file/<id>?download` ucu Range/UA/geçici indirme hatası nedeniyle var olan dosya için bile
  * 404/hata dönebiliyordu → `classifyResponse` 404'ü `hard:true` (anında DEAD) sayıp geçerli filmleri siliyordu.
@@ -131,6 +140,10 @@ export function classifyUrl(rawUrl) {
   if (isAloulaPlaceholder(low)) {
     return { kind: "aloula", checkable: false };
   }
+  // Vidmody embeds are not directly probeable as reliable media endpoints.
+  if (isVidmodyEmbed(low)) {
+    return { kind: "vidmody_embed", checkable: false };
+  }
   if (/(?:^|\.)youtube\.com$/.test(hostOf(low)) || hostOf(low) === "youtu.be" ||
       low.includes("youtube.com/") || low.includes("youtu.be/") ||
       low.includes("youtube-nocookie.com")) {
@@ -160,7 +173,7 @@ export function classifyResponse(status, opts = {}) {
   }
   if (s >= 300 && s < 400) return { ok: null, hard: false };
   if (s === 401 || s === 403 || s === 429 || s === 451) return { ok: null, hard: false };
-  if (s === 404 || s === 410) return { ok: false, hard: true };
+  if (s === 404 || s === 410) return { ok: false, hard: false };
   if (s >= 500 && s < 600) return { ok: null, hard: false };   // 5xx gecici -> strike YOK (eski: ok:false)
   return { ok: null, hard: false };
 }
