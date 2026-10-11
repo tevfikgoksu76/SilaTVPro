@@ -376,6 +376,26 @@ export async function scanAll(masterText, prevState, opts = {}) {
                        confirmedFailThisRun > decisiveThisRun * HEALTH_CFG.GUARD_FAIL_RATIO;
   if (!guardTripped) {
     for (const [k, rec] of updates) state[k] = rec;
+  } else {
+    // Guard: discard health verdicts/counters from this systemic-failure batch,
+    // but persist scheduling metadata so LIMIT can move to the next batch.
+    // Existing status/fails/verification ts remain untouched.
+    for (const [k, rec] of updates) {
+      const previous = state[k];
+      if (previous) {
+        state[k] = { ...previous, lastAttemptTs: rec.lastAttemptTs };
+      } else {
+        // Record only that this URL was attempted; UNKNOWN is not a health verdict.
+        state[k] = {
+          status: HEALTH_CFG.ST_UNKNOWN,
+          fails: 0,
+          ts: 0,
+          lastAttemptTs: rec.lastAttemptTs,
+          rt: null,
+          code: null,
+        };
+      }
+    }
   }
 
   return {
