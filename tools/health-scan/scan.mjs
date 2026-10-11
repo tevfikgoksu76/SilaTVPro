@@ -125,6 +125,8 @@ async function main() {
     checkedThisRun: res.checked,
     timeouts: res.timeouts,
     neterrs: res.neterrs,
+    confirmedFails: res.confirmedFails,
+    uncertain: res.uncertain,
     clean: { kept: clean.kept, removed: clean.removed },
     published: decision.publish,
     publishSkipReason: decision.publish ? null : decision.reason,
@@ -153,7 +155,7 @@ async function main() {
   console.log(`   total=${res.breakdown.total} checkable=${res.breakdown.checkable} ` +
               `youtube=${res.breakdown.youtube} acestream=${res.breakdown.acestream} nonhttp=${res.breakdown.nonhttp}`);
   console.log(`   healthy=${stats.healthy} temp=${stats.temporaryFailure} dead=${stats.dead} unknown=${stats.unknown}`);
-  console.log(`   checkedThisRun=${res.checked} timeouts=${res.timeouts} neterrs=${res.neterrs}`);
+  console.log(`   checkedThisRun=${res.checked} timeouts=${res.timeouts} neterrs=${res.neterrs} confirmedFails=${res.confirmedFails} uncertain=${res.uncertain} guardTripped=${res.guardTripped}`);
   console.log(`   clean: kept=${clean.kept} removed=${clean.removed}`);
   console.log(`   timings: fetch=${fetchMs}ms scan=${scanMs}ms`);
   console.log(`   → ${path.join(outDir, "clean.m3u")}, ${path.join(outDir, "stats.json")}, ${stateFile}`);
