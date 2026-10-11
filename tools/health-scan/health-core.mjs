@@ -20,8 +20,11 @@ export const HEALTH_CFG = {
   ST_TEMP: "TEMPORARY_FAILURE",
   ST_DEAD: "DEAD",
   ST_UNKNOWN: "UNKNOWN",
-  GUARD_FAIL_RATIO: 0.70,       // bir turda ok!==true orani bunu asarsa -> sonuclar state'e YAZILMAZ
-  GUARD_MIN_SAMPLES: 20,        // guard yalniz bu kadar kontrol olan turlarda gecerli (kucuk turlar muaf)
+  GUARD_FAIL_RATIO: 0.70,       // bir turda DOGRULANMIS basarisizlik (ok===false) orani, KESIN sonuclar
+                                // (saglikli+dogrulanmis-basarisiz) icinde bunu asarsa -> sonuclar state'e YAZILMAZ.
+                                // BELIRSIZ sonuclar (neterr/timeout/5xx/401/403/429/451) bu orana GIRMEZ.
+  GUARD_MIN_SAMPLES: 20,        // guard yalniz bu kadar KESIN sonuc (saglikli+dogrulanmis-basarisiz) olan
+                                // turlarda gecerli (kucuk/belirsiz turlar muaf)
 };
 
 /* ---------------- küçük yardımcılar ---------------- */
@@ -182,11 +185,13 @@ export function classifyResponse(status, opts = {}) {
  * Önceki kayıt + yeni probe → yeni kayıt. 3-strike durum makinesi.
  */
 export function nextRecord(prev, probe, now) {
-  const p = prev && typeof prev === "object" ? prev : { status: HEALTH_CFG.ST_UNKNOWN, fails: 0 };
+  const hasPrev = prev && typeof prev === "object";
+  const p = hasPrev ? prev : { status: HEALTH_CFG.ST_UNKNOWN, fails: 0 };
   const rec = {
     status: p.status || HEALTH_CFG.ST_UNKNOWN,
     fails: p.fails | 0,
     ts: now,
+    lastAttemptTs: now,
     rt: probe.responseTimeMs ?? null,
     code: probe.httpStatus ?? null,
   };
@@ -197,7 +202,11 @@ export function nextRecord(prev, probe, now) {
     const dead = probe.hard === true || rec.fails >= HEALTH_CFG.DEAD_THRESHOLD;
     rec.status = dead ? HEALTH_CFG.ST_DEAD : HEALTH_CFG.ST_TEMP;
   } else {
-    rec.status = p.status || HEALTH_CFG.ST_UNKNOWN; rec.fails = p.fails | 0;
+    // BELIRSIZ: durum + sayaci koru; onceki kayit varsa zaman damgasini da koru.
+    // lastAttemptTs ayrica bu denemenin yapildigini kaydeder; LIMIT kullaniminda ilerleme saglar.
+    rec.status = p.status || HEALTH_CFG.ST_UNKNOWN;
+    rec.fails = p.fails | 0;
+    if (hasPrev && Number.isFinite(p.ts)) rec.ts = p.ts;
   }
   return rec;
 }
@@ -335,10 +344,15 @@ export async function scanAll(masterText, prevState, opts = {}) {
   for (const tg of targets) if (prev[tg.key]) state[tg.key] = prev[tg.key];
 
   // kontrol edilecekler: taze olmayanlar (veya yeni). ttl=0 → hepsi.
+  // BELİRSİZ sonuçta ts korunur ki eski DEAD/TEMP kayıtlar yeniden kontrol edilebilsin.
+  // LIMIT kullaniminda kalici neterr alan ilk grup listeyi bloke etmesin diye son deneme zamani
+  // (lastAttemptTs) en eski olan adaylari once kontrol et; hic denenmemisler de once gelir.
   let toCheck = targets.filter((x) => { const p = state[x.key]; return !p || (t - (p.ts || 0) >= ttl); });
+  toCheck.sort((a, b) => (state[a.key]?.lastAttemptTs || 0) - (state[b.key]?.lastAttemptTs || 0));
   if (limit && limit > 0) toCheck = toCheck.slice(0, limit);
 
-  let idx = 0, checked = 0, timeouts = 0, neterrs = 0, healthyThisRun = 0;
+  let idx = 0, checked = 0, timeouts = 0, neterrs = 0, healthyThisRun = 0,
+      confirmedFailThisRun = 0, uncertainThisRun = 0;
   const updates = new Map();   // tur sonuclari; oran-guard'tan GECERSE state'e islenir
   async function worker() {
     while (idx < toCheck.length) {
@@ -347,6 +361,8 @@ export async function scanAll(masterText, prevState, opts = {}) {
       if (probe.error === "timeout") timeouts++;
       else if (probe.error && probe.error.startsWith("neterr")) neterrs++;
       if (probe.ok === true) healthyThisRun++;
+      else if (probe.ok === false) confirmedFailThisRun++;
+      else uncertainThisRun++;
       updates.set(cur.key, nextRecord(state[cur.key], probe, nowFn()));
       checked++;
     }
@@ -354,16 +370,39 @@ export async function scanAll(masterText, prevState, opts = {}) {
   const pool = Array.from({ length: Math.max(1, Math.min(conc, toCheck.length || 1)) }, () => worker());
   await Promise.all(pool);
 
-  // ORAN-GUARD: bu turda basarisizlik (ok!==true) orani esigi asarsa, turun SONUCLARINI state'e YAZMA
-  // (gecici runner/DNS cokmesi tum katalogu DEAD yapmasin). Kucuk turlar muaf (GUARD_MIN_SAMPLES).
-  const failedThisRun = checked - healthyThisRun;
-  const guardTripped = checked >= HEALTH_CFG.GUARD_MIN_SAMPLES &&
-                       failedThisRun > checked * HEALTH_CFG.GUARD_FAIL_RATIO;
+  // Yalniz kesin cevaplar (ok===true/false) guard oranina girer. Belirsiz ag sonuclari olum kaniti degildir.
+  const decisiveThisRun = healthyThisRun + confirmedFailThisRun;
+  const guardTripped = decisiveThisRun >= HEALTH_CFG.GUARD_MIN_SAMPLES &&
+                       confirmedFailThisRun > decisiveThisRun * HEALTH_CFG.GUARD_FAIL_RATIO;
   if (!guardTripped) {
     for (const [k, rec] of updates) state[k] = rec;
+  } else {
+    // Guard: discard health verdicts/counters from this systemic-failure batch,
+    // but persist scheduling metadata so LIMIT can move to the next batch.
+    // Existing status/fails/verification ts remain untouched.
+    for (const [k, rec] of updates) {
+      const previous = state[k];
+      if (previous) {
+        state[k] = { ...previous, lastAttemptTs: rec.lastAttemptTs };
+      } else {
+        // Record only that this URL was attempted; UNKNOWN is not a health verdict.
+        state[k] = {
+          status: HEALTH_CFG.ST_UNKNOWN,
+          fails: 0,
+          ts: 0,
+          lastAttemptTs: rec.lastAttemptTs,
+          rt: null,
+          code: null,
+        };
+      }
+    }
   }
 
-  return { state, breakdown, checked, timeouts, neterrs, guardTripped, stats: computeStats(state, t) };
+  return {
+    state, breakdown, checked, timeouts, neterrs,
+    confirmedFails: confirmedFailThisRun, uncertain: uncertainThisRun,
+    guardTripped, stats: computeStats(state, t),
+  };
 }
 
 /**

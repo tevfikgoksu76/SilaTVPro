@@ -1,6 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { classifyUrl, classifyResponse, nextRecord, HEALTH_CFG } from "./health-core.mjs";
+import { classifyUrl, classifyResponse, nextRecord, scanAll, urlKeyHex, HEALTH_CFG } from "./health-core.mjs";
+
+function neterrFetch() {
+  return async () => { const e = new Error("getaddrinfo ENOTFOUND host"); e.name = "FetchError"; throw e; };
+}
+function statusFetch(code) {
+  return async () => ({ status: code, headers: { get: () => null }, async text() { return ""; } });
+}
+function healthyFetch() {
+  return async () => ({ status: 200, headers: { get: () => null }, async text() { return "#EXTM3U\n#EXTINF:-1,x\nhttps://seg/1.ts\n"; } });
+}
+function makeMaster(n) {
+  let s = "#EXTM3U\n";
+  for (let i = 0; i < n; i++) s += `#EXTINF:-1,Ch${i}\nhttps://host-${i}.example/live.m3u8\n`;
+  return s;
+}
 
 test("404/410 are failures but not hard-dead", () => {
   assert.deepEqual(classifyResponse(404), { ok: false, hard: false });
@@ -47,4 +62,108 @@ test("unrelated hosts containing the text vidmody remain checkable", () => {
   ]) {
     assert.equal(classifyUrl(url).checkable, true, url);
   }
+});
+
+
+// Regression: uncertainty must not trip systemic-failure ratio guard.
+test("all uncertain network results do not trip guard or create DEAD records", async () => {
+  const n = 50;
+  const r = await scanAll(makeMaster(n), {}, { fetchImpl: neterrFetch(), ttlMs: 0, concurrency: 10, now: () => 1000 });
+  assert.equal(r.checked, n);
+  assert.equal(r.confirmedFails, 0);
+  assert.equal(r.uncertain, n);
+  assert.equal(r.guardTripped, false);
+  assert.equal(r.stats.dead, 0);
+  assert.equal(r.stats.unknown, n);
+});
+
+test("high ratio of confirmed 404 failures still trips guard and preserves prior state", async () => {
+  const n = 40;
+  const master = makeMaster(n);
+  const prev = {};
+  for (let i = 0; i < n; i++) prev[urlKeyHex(`https://host-${i}.example/live.m3u8`)] = { status: HEALTH_CFG.ST_HEALTHY, fails: 0, ts: 0 };
+  const r = await scanAll(master, prev, { fetchImpl: statusFetch(404), ttlMs: 0, concurrency: 10, now: () => 1000 });
+  assert.equal(r.confirmedFails, n);
+  assert.equal(r.guardTripped, true);
+  assert.equal(r.stats.healthy, n);
+  assert.equal(r.stats.dead, 0);
+});
+
+test("uncertain result preserves old DEAD status and verification timestamp, but records attempt time", () => {
+  const before = { status: HEALTH_CFG.ST_DEAD, fails: 3, ts: 10, lastAttemptTs: 5 };
+  const r = nextRecord(before, { ok: null, httpStatus: 0 }, 100);
+  assert.equal(r.status, HEALTH_CFG.ST_DEAD);
+  assert.equal(r.fails, 3);
+  assert.equal(r.ts, 10);
+  assert.equal(r.lastAttemptTs, 100);
+});
+
+test("real healthy evidence restores an old DEAD record", () => {
+  const before = { status: HEALTH_CFG.ST_DEAD, fails: 3, ts: 10 };
+  const r = nextRecord(before, { ok: true, httpStatus: 200 }, 100);
+  assert.equal(r.status, HEALTH_CFG.ST_HEALTHY);
+  assert.equal(r.fails, 0);
+  assert.equal(r.ts, 100);
+});
+
+test("LIMIT retries progress past prior uncertain results instead of repeatedly checking first batch", async () => {
+  const n = 25;
+  const master = makeMaster(n);
+  const prev = {};
+  for (let i = 0; i < n; i++) prev[urlKeyHex(`https://host-${i}.example/live.m3u8`)] = { status: HEALTH_CFG.ST_DEAD, fails: 3, ts: 0 };
+  const t1 = HEALTH_CFG.HEALTH_TTL_MS + 1;
+  const first = await scanAll(master, prev, { fetchImpl: neterrFetch(), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 10, concurrency: 1, now: () => t1 });
+  assert.equal(first.checked, 10);
+  const t2 = t1 + 1000;
+  const second = await scanAll(master, first.state, { fetchImpl: neterrFetch(), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 10, concurrency: 1, now: () => t2 });
+  assert.equal(second.checked, 10);
+  const firstBatch = new Set(Object.entries(first.state).filter(([, r]) => r.lastAttemptTs === t1).map(([k]) => k));
+  const secondBatch = Object.entries(second.state).filter(([, r]) => r.lastAttemptTs === t2).map(([k]) => k);
+  assert.equal(secondBatch.some(k => firstBatch.has(k)), false);
+});
+
+test("three confirmed 404/410 failures still obey 3-strike rule across an uncertain probe", () => {
+  let r = nextRecord(undefined, { ok: false, httpStatus: 404 }, 1);
+  assert.equal(r.fails, 1);
+  r = nextRecord(r, { ok: null, httpStatus: 0 }, 2);
+  assert.equal(r.fails, 1);
+  r = nextRecord(r, { ok: false, httpStatus: 410 }, 3);
+  assert.equal(r.fails, 2);
+  r = nextRecord(r, { ok: false, httpStatus: 404 }, 4);
+  assert.equal(r.status, HEALTH_CFG.ST_DEAD);
+});
+
+test("GUARD + LIMIT: repeated systemic 404 guard preserves health state but advances across batches", async () => {
+  const n = 75;
+  const master = makeMaster(n);
+  const prev = {};
+  for (let i = 0; i < n; i++) {
+    prev[urlKeyHex(`https://host-${i}.example/live.m3u8`)] = {
+      status: HEALTH_CFG.ST_HEALTHY, fails: 0, ts: 0, lastAttemptTs: 0
+    };
+  }
+  const t1 = HEALTH_CFG.HEALTH_TTL_MS + 1;
+  const first = await scanAll(master, prev, { fetchImpl: statusFetch(404), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 25, concurrency: 1, now: () => t1 });
+  assert.equal(first.checked, 25);
+  assert.equal(first.guardTripped, true);
+  assert.equal(first.stats.healthy, 75, "guard must preserve every previous HEALTHY status");
+  const firstBatch = new Set(Object.entries(first.state).filter(([, r]) => r.lastAttemptTs === t1).map(([k]) => k));
+  assert.equal(firstBatch.size, 25);
+
+  const t2 = t1 + 1000;
+  const second = await scanAll(master, first.state, { fetchImpl: statusFetch(404), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 25, concurrency: 1, now: () => t2 });
+  assert.equal(second.checked, 25);
+  assert.equal(second.guardTripped, true);
+  const secondBatch = new Set(Object.entries(second.state).filter(([, r]) => r.lastAttemptTs === t2).map(([k]) => k));
+  assert.equal(secondBatch.size, 25);
+  assert.equal([...secondBatch].some(k => firstBatch.has(k)), false, "second guarded run must check a different batch");
+
+  const t3 = t2 + 1000;
+  const third = await scanAll(master, second.state, { fetchImpl: statusFetch(404), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 25, concurrency: 1, now: () => t3 });
+  assert.equal(third.checked, 25);
+  assert.equal(third.guardTripped, true);
+  const thirdBatch = new Set(Object.entries(third.state).filter(([, r]) => r.lastAttemptTs === t3).map(([k]) => k));
+  assert.equal(thirdBatch.size, 25);
+  assert.equal([...thirdBatch].some(k => firstBatch.has(k) || secondBatch.has(k)), false, "third guarded run must check the remaining batch");
+  assert.equal(third.stats.healthy, 75, "guard must not apply 404 verdicts to state");
 });
