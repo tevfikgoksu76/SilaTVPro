@@ -9,11 +9,11 @@ function statusFetch(code) {
   return async () => ({ status: code, headers: { get: () => null }, async text() { return ""; } });
 }
 function healthyFetch() {
-  return async () => ({ status: 200, headers: { get: () => null }, async text() { return "#EXTM3U\\n#EXTINF:-1,x\\nhttps://seg/1.ts\\n"; } });
+  return async () => ({ status: 200, headers: { get: () => null }, async text() { return "#EXTM3U\n#EXTINF:-1,x\nhttps://seg/1.ts\n"; } });
 }
 function makeMaster(n) {
-  let s = "#EXTM3U\\n";
-  for (let i = 0; i < n; i++) s += `#EXTINF:-1,Ch${i}\\nhttps://host-${i}.example/live.m3u8\\n`;
+  let s = "#EXTM3U\n";
+  for (let i = 0; i < n; i++) s += `#EXTINF:-1,Ch${i}\nhttps://host-${i}.example/live.m3u8\n`;
   return s;
 }
 
@@ -81,7 +81,6 @@ test("high ratio of confirmed 404 failures still trips guard and preserves prior
   const n = 40;
   const master = makeMaster(n);
   const prev = {};
-  const { urlKeyHex } = await import("./health-core.mjs");
   for (let i = 0; i < n; i++) prev[urlKeyHex(`https://host-${i}.example/live.m3u8`)] = { status: HEALTH_CFG.ST_HEALTHY, fails: 0, ts: 0 };
   const r = await scanAll(master, prev, { fetchImpl: statusFetch(404), ttlMs: 0, concurrency: 10, now: () => 1000 });
   assert.equal(r.confirmedFails, n);
