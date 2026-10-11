@@ -132,3 +132,38 @@ test("three confirmed 404/410 failures still obey 3-strike rule across an uncert
   r = nextRecord(r, { ok: false, httpStatus: 404 }, 4);
   assert.equal(r.status, HEALTH_CFG.ST_DEAD);
 });
+
+test("GUARD + LIMIT: repeated systemic 404 guard preserves health state but advances across batches", async () => {
+  const n = 75;
+  const master = makeMaster(n);
+  const prev = {};
+  for (let i = 0; i < n; i++) {
+    prev[urlKeyHex(`https://host-${i}.example/live.m3u8`)] = {
+      status: HEALTH_CFG.ST_HEALTHY, fails: 0, ts: 0, lastAttemptTs: 0
+    };
+  }
+  const t1 = HEALTH_CFG.HEALTH_TTL_MS + 1;
+  const first = await scanAll(master, prev, { fetchImpl: statusFetch(404), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 25, concurrency: 1, now: () => t1 });
+  assert.equal(first.checked, 25);
+  assert.equal(first.guardTripped, true);
+  assert.equal(first.stats.healthy, 75, "guard must preserve every previous HEALTHY status");
+  const firstBatch = new Set(Object.entries(first.state).filter(([, r]) => r.lastAttemptTs === t1).map(([k]) => k));
+  assert.equal(firstBatch.size, 25);
+
+  const t2 = t1 + 1000;
+  const second = await scanAll(master, first.state, { fetchImpl: statusFetch(404), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 25, concurrency: 1, now: () => t2 });
+  assert.equal(second.checked, 25);
+  assert.equal(second.guardTripped, true);
+  const secondBatch = new Set(Object.entries(second.state).filter(([, r]) => r.lastAttemptTs === t2).map(([k]) => k));
+  assert.equal(secondBatch.size, 25);
+  assert.equal([...secondBatch].some(k => firstBatch.has(k)), false, "second guarded run must check a different batch");
+
+  const t3 = t2 + 1000;
+  const third = await scanAll(master, second.state, { fetchImpl: statusFetch(404), ttlMs: HEALTH_CFG.HEALTH_TTL_MS, limit: 25, concurrency: 1, now: () => t3 });
+  assert.equal(third.checked, 25);
+  assert.equal(third.guardTripped, true);
+  const thirdBatch = new Set(Object.entries(third.state).filter(([, r]) => r.lastAttemptTs === t3).map(([k]) => k));
+  assert.equal(thirdBatch.size, 25);
+  assert.equal([...thirdBatch].some(k => firstBatch.has(k) || secondBatch.has(k)), false, "third guarded run must check the remaining batch");
+  assert.equal(third.stats.healthy, 75, "guard must not apply 404 verdicts to state");
+});
