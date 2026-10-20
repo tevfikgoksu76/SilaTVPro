@@ -1,20 +1,17 @@
 {
-  "versionCode": 43,
-  "versionName": "4.1.3",
-  "releaseDate": "2026-10-08",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.3/SilaTV_PRO_4.1.3.apk",
-  "apkSizeBytes": 20169106,
-  "sha256": "8751e79372afd20bd055e8986096e611d656b5196a990414af30e3ed90348565",
+  "versionCode": 44,
+  "versionName": "4.1.4",
+  "releaseDate": "2026-10-20",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.4/SilaTVPRO_V4.1.4.apk",
+  "apkSizeBytes": 20550823,
+  "sha256": "829e7ab61f9ffae03f60686f3a4d671510592926ca04a06a35523bd1709e2a33",
   "mandatory": false,
   "changes": [
-    "⭐ Favori Platformlar eklendi",
-    "🎬 Platform içinden Film ve Dizi favorileme eklendi",
-    "↔️ Favoriler için Dikey / Yatay görünüm seçeneği eklendi",
-    "🔎 Smart Search / Akıllı Arama geliştirildi",
-    "🕘 Son İzlenenler özelliği eklendi",
-    "🕌 Mekke ve Medine canlı yayınları eklendi",
-    "⚡ Daha hızlı ve akıcı Android TV deneyimi",
-    "🚫 AceStream ve ilgili entegrasyonlar telif bildirimleri nedeniyle kaldırıldı",
-    "📺 Android TV ve Google TV uyumluluğu korunmuştur"
+    "✨ SilaTV PRO 4.1.4 sürüm güncellemesi",
+    "🧩 Yeni Eklentiler bölümü",
+    "▶️ AceStream bölümü etkinleştirildi; kanal listesi henüz eklenmedi",
+    "📺 Canlı TV, Filmler ve Diziler özellikleri korundu",
+    "⭐ Favoriler, Arama ve Ayarlar özellikleri korundu",
+    "📱 Android TV ve Google TV desteği"
   ]
 }
