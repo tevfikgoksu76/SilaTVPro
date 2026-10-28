@@ -1,19 +1,17 @@
 {
-  "versionCode": 46,
-  "versionName": "4.1.6",
+  "versionCode": 47,
+  "versionName": "4.1.7",
   "releaseDate": "2026-10-28",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_v4.1.6.apk",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.7/SilaTVPRO_v4.1.7.apk",
   "apkSizeBytes": 21049067,
-  "sha256": "832e2b026bfda2c314ecebc0118a2176ebe191650805a9cabdb7c68d9b0bc772",
+  "sha256": "5ac331761177efab3bd5fb6b8deca79b7c46987f0b7dc4a2cb494be7d8bbaa4f",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.6 sürüm güncellemesi",
-    "🆕 DIZI LIFE kaynağı eklendi",
-    "🆕 DIZIPAL2 kaynağı eklendi",
-    "🗑️ Watream kaynağı kaldırıldı",
-    "🗑️ Dizicehennemi kaynağı kaldırıldı",
-    "🧩 Yeni Eklenenler bölümü Eklentiler bölümüne taşındı",
-    "📺 Android TV ve Google TV desteği korundu",
-    "⭐ Favoriler, arama ve ayarlar özellikleri korundu"
+    "SilaTV PRO 4.1.7 sürüm güncellemesi",
+    "DiziPal kaynağı kaldırıldı",
+    "DIZIPAL2 ve DIZI LIFE kaynakları korundu",
+    "Yeni Eklenenler bölümü Eklentiler bölümünde",
+    "Favoriler, arama ve ayarlar korundu",
+    "Android TV ve Google TV desteği korundu"
   ]
 }
