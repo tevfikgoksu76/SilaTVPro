@@ -1,20 +1,21 @@
+
 {
-  "versionCode": 45,
-  "versionName": "4.1.5",
-  "releaseDate": "2026-10-20",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/V4.1.5/SilaTVPRO_V4.1.5.apk",
-  "apkSizeBytes": 20551416,
-  "sha256": "03f9ed67a23ffd5cb1d4f390e05991d0b2a7eb18b059bb45d8e0ea1d032de7f1",
+  "versionCode": 47,
+  "versionName": "4.1.7",
+  "releaseDate": "2026-11-05",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/V4.1.7/SilaTVPRO_V4.1.7_dagitim.apk",
+  "apkSizeBytes": 15307984,
+  "sha256": "ab3dff4050111412c83cd5f854aec628948083bd793c78d1416e4bffe89fed7c",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.5 sürüm güncellemesi",
-    "🧩 Eklentiler bölümü güncellendi",
-    "🕋 Mekke ve Medine içerikleri eklendi",
-    "🧩 JSON Katalog kaynak seçeneği eklendi",
-    "▶️ AceStream bölümü güncellendi",
-    "🌍 Yabancı AceStream kanal grupları eklendi",
-    "📺 Canlı TV, Filmler ve Diziler özellikleri korundu",
-    "⭐ Favoriler, Arama ve Ayarlar özellikleri korundu",
-    "📱 Android TV ve Google TV desteği"
+    "✨ SilaTV PRO 4.1.7 sürüm güncellemesi",
+    "📺 Tek uygulamada Android TV, Mobil ve Tablet arayüzleri",
+    "📱 İlk açılışta arayüz seçimi ve ayarlardan değiştirme",
+    "📡 Mobil ve Tablet için Canlı TV grup ve kategori düzeni",
+    "🎬 Mobil ve Tablet için Film grup ve kategori düzeni",
+    "🎯 Geliştirilmiş odak çerçevesi ve seçim görünümü",
+    "⚡ Daha hızlı açılış ve akıcı geçişler",
+    "🛡️ Geliştirilmiş reklam filtreleme",
+    "⭐ Favoriler, Filmler, Diziler ve Canlı TV özellikleri korundu"
   ]
 }
