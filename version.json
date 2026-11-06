@@ -1,20 +1,24 @@
+
 {
-  "versionCode": 45,
-  "versionName": "4.1.5",
-  "releaseDate": "2026-10-20",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/V4.1.5/SilaTVPRO_V4.1.5.apk",
-  "apkSizeBytes": 20551416,
-  "sha256": "03f9ed67a23ffd5cb1d4f390e05991d0b2a7eb18b059bb45d8e0ea1d032de7f1",
+  "versionCode": 46,
+  "versionName": "4.1.9",
+  "releaseDate": "2026-11-06",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.9/SilaTVPRO_V4.1.9_dagitim.apk",
+  "apkSizeBytes": 15291600,
+  "sha256": "ca428c51d1e30d2fa3d4db848bad72fba7ddc78eceb7cc853838b9379cae7e5c",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.5 sürüm güncellemesi",
-    "🧩 Eklentiler bölümü güncellendi",
-    "🕋 Mekke ve Medine içerikleri eklendi",
-    "🧩 JSON Katalog kaynak seçeneği eklendi",
-    "▶️ AceStream bölümü güncellendi",
-    "🌍 Yabancı AceStream kanal grupları eklendi",
-    "📺 Canlı TV, Filmler ve Diziler özellikleri korundu",
-    "⭐ Favoriler, Arama ve Ayarlar özellikleri korundu",
-    "📱 Android TV ve Google TV desteği"
+    "✨ SilaTV PRO 4.1.9 resmi sürüm güncellemesi",
+    "🛡️ 4.1.8 sürümünde bildirilen Google Play Protect güvenlik uyarısı sorunu giderildi",
+    "🔒 Uygulama güvenliği ve kurulum güvenilirliği iyileştirildi",
+    "🐛 Video oynatma hataları ve kararlılık sorunları düzeltildi",
+    "🎬 Media3 oynatma entegrasyonu iyileştirildi",
+    "📺 M3U ve Xtream oynatma listesi uyumluluğu geliştirildi",
+    "🖥️ Video bulunmadığında tam ekran davranışı düzeltildi",
+    "🧭 Menü navigasyonu ve arayüz davranışları iyileştirildi",
+    "🧹 Web Player üretim APK'sından kaldırıldı",
+    "🔧 Kaynak yönetimi ve hata işleme iyileştirildi",
+    "⭐ Canlı TV, Filmler, Diziler, Favoriler ve Arama özellikleri korundu",
+    "📺 Android TV ve Google TV desteği korundu"
   ]
 }
