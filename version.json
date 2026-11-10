@@ -1,21 +1,20 @@
-
 {
-  "versionCode": 50,
-  "versionName": "4.2.0 AGUBO",
-  "releaseDate": "2026-11-10",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.2.0-AGUBO/SilaTVPRO_V4.2.0_dagitim.apk",
-  "apkSizeBytes": 15275216,
-  "sha256": "1f1f4b8ea4fd05e6ad10bf773504240eca91cbebaaadddf773adabcd2ea7e158",
+  "versionCode": 45,
+  "versionName": "4.1.5",
+  "releaseDate": "2026-10-20",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/V4.1.5/SilaTVPRO_V4.1.5.apk",
+  "apkSizeBytes": 20551416,
+  "sha256": "03f9ed67a23ffd5cb1d4f390e05991d0b2a7eb18b059bb45d8e0ea1d032de7f1",
   "mandatory": false,
   "changes": [
-    "🔥 SilaTV PRO 4.2.0 AGUBO güncellemesi",
-    "🛡️ AdGuard + uBlock entegre reklam engelleme sistemi",
-    "🔑 Dahili VPN desteği ve harici VPN uyumluluğu",
-    "🎨 Kişiselleştirilebilir tema ve renk seçenekleri",
-    "🧩 Genişletilebilir eklenti kataloğu",
-    "🌐 13 hazır site ve kolay site yönetimi",
-    "📺 Android TV, Google TV, mobil ve tablet desteği",
-    "⚡ Performans ve kararlılık iyileştirmeleri",
-    "⭐ Canlı TV, Filmler, Diziler ve Favoriler özellikleri korundu"
+    "✨ SilaTV PRO 4.1.5 sürüm güncellemesi",
+    "🧩 Eklentiler bölümü güncellendi",
+    "🕋 Mekke ve Medine içerikleri eklendi",
+    "🧩 JSON Katalog kaynak seçeneği eklendi",
+    "▶️ AceStream bölümü güncellendi",
+    "🌍 Yabancı AceStream kanal grupları eklendi",
+    "📺 Canlı TV, Filmler ve Diziler özellikleri korundu",
+    "⭐ Favoriler, Arama ve Ayarlar özellikleri korundu",
+    "📱 Android TV ve Google TV desteği"
   ]
 }
