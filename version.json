@@ -1,21 +1,22 @@
 {
-  "versionCode": 46,
-  "versionName": "4.1.6",
+  "versionCode": 47,
+  "versionName": "4.1.7",
   "releaseDate": "2026-11-12",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_4.1.6_v46.apk",
-  "apkSizeBytes": 21185396,
-  "sha256": "28851db583c822362e7ffd97b9509eb09e243a94d3f7d3c1c3303413e88b0a9e",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.7/SilaTVPRO_4.1.7_v47.apk",
+  "apkSizeBytes": 21218223,
+  "sha256": "b4515c0af7aa5521200430f8e028f4171b915a6c2a06b645a3b57e2ca568610f",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.6 sürüm güncellemesi",
-    "🧹 17 eski başlangıç sitesi kaldırıldı",
-    "📡 LiveTVGarden ve LiveAtlasTV korundu",
-    "🧩 Eklentiler ve site yönetimi düzenlendi",
+    "🚀 SilaTV PRO 4.1.7 yeni sürüm",
+    "🌍 Dünya TV ekranı yenilendi ve küçültüldü",
+    "📡 LiveTVGarden ve LiveAtlasTV Dünya TV'ye eklendi",
+    "💛 Belirgin sarı odak çerçevesi",
+    "🗺️ Ekranda daha fazla ülke kartı",
+    "🎮 Android TV kumanda gezinmesi iyileştirildi",
     "🌐 Web Player korundu",
-    "📱 Android TV, Mobil ve Tablet arayüzleri",
-    "🎨 Tema ve kişiselleştirme özellikleri",
+    "🧩 Eklenti ve site yönetimi korundu",
     "🔒 VPN sistemi korundu",
     "🛡️ Reklam engelleme sistemleri korundu",
-    "⚡ Kararlılık ve test iyileştirmeleri"
+    "⚡ 882/882 test başarılı"
   ]
 }
