@@ -1,20 +1,21 @@
 {
-  "versionCode": 45,
-  "versionName": "4.1.5",
-  "releaseDate": "2026-10-20",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/V4.1.5/SilaTVPRO_V4.1.5.apk",
-  "apkSizeBytes": 20551416,
-  "sha256": "03f9ed67a23ffd5cb1d4f390e05991d0b2a7eb18b059bb45d8e0ea1d032de7f1",
+  "versionCode": 46,
+  "versionName": "4.1.6",
+  "releaseDate": "2026-11-12",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_4.1.6_v46.apk",
+  "apkSizeBytes": 21185396,
+  "sha256": "28851db583c822362e7ffd97b9509eb09e243a94d3f7d3c1c3303413e88b0a9e",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.5 sürüm güncellemesi",
-    "🧩 Eklentiler bölümü güncellendi",
-    "🕋 Mekke ve Medine içerikleri eklendi",
-    "🧩 JSON Katalog kaynak seçeneği eklendi",
-    "▶️ AceStream bölümü güncellendi",
-    "🌍 Yabancı AceStream kanal grupları eklendi",
-    "📺 Canlı TV, Filmler ve Diziler özellikleri korundu",
-    "⭐ Favoriler, Arama ve Ayarlar özellikleri korundu",
-    "📱 Android TV ve Google TV desteği"
+    "✨ SilaTV PRO 4.1.6 sürüm güncellemesi",
+    "🧹 17 eski başlangıç sitesi kaldırıldı",
+    "📡 LiveTVGarden ve LiveAtlasTV korundu",
+    "🧩 Eklentiler ve site yönetimi düzenlendi",
+    "🌐 Web Player korundu",
+    "📱 Android TV, Mobil ve Tablet arayüzleri",
+    "🎨 Tema ve kişiselleştirme özellikleri",
+    "🔒 VPN sistemi korundu",
+    "🛡️ Reklam engelleme sistemleri korundu",
+    "⚡ Kararlılık ve test iyileştirmeleri"
   ]
 }
