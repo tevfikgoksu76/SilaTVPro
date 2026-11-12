@@ -3,8 +3,8 @@
   "versionName": "4.1.6",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_4.1.6_v46.apk",
-  "apkSizeBytes": 21185396,
-  "sha256": "28851db583c822362e7ffd97b9509eb09e243a94d3f7d3c1c3303413e88b0a9e",
+  "apkSizeBytes": 21218223,
+  "sha256": "4fb97bad3ac9dce8dc40baaf3ac85d1cb6347657e42bef1c466341ff08e55718",
   "mandatory": false,
   "changes": [
     "✨ SilaTV PRO 4.1.6 sürüm güncellemesi",
@@ -19,4 +19,3 @@
     "⚡ Kararlılık ve test iyileştirmeleri"
   ]
 }
-
