@@ -1,21 +1,17 @@
 {
   "versionCode": 46,
   "versionName": "4.1.6",
-  "releaseDate": "2026-11-12",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_4.1.6_v46.apk",
-  "apkSizeBytes": 21218223,
-  "sha256": "4fb97bad3ac9dce8dc40baaf3ac85d1cb6347657e42bef1c466341ff08e55718",
+  "releaseDate": "2026-11-19",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6-r2-eklenti-yedek-fix/SilaTVPRO_4.1.6_v46_R2_EKLENTI_YEDEK_FIX.apk",
+  "apkSizeBytes": 0,
+  "sha256": "",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.6 sürüm güncellemesi",
-    "🧹 17 eski başlangıç sitesi kaldırıldı",
-    "📡 LiveTVGarden ve LiveAtlasTV korundu",
-    "🧩 Eklentiler ve site yönetimi düzenlendi",
-    "🌐 Web Player korundu",
-    "📱 Android TV, Mobil ve Tablet arayüzleri",
-    "🎨 Tema ve kişiselleştirme özellikleri",
-    "🔒 VPN sistemi korundu",
-    "🛡️ Reklam engelleme sistemleri korundu",
-    "⚡ Kararlılık ve test iyileştirmeleri"
+    "🧩 Eklentiler bölümüne elle eklenen sitelerin yedeklenmesi düzeltildi",
+    "📦 Yedek geri yüklendiğinde eklenen sitelerin yeniden görünmesi sağlandı",
+    "🔁 Mevcut siteler korunarak yinelenen kayıtların önlenmesi hedeflendi",
+    "🛡️ Reklam engelleme iyileştirmeleri korundu",
+    "🎬 Film ve Dizi bölümleri korundu",
+    "⚙️ Sürüm 4.1.6 / versionCode 46 olarak korundu"
   ]
 }
