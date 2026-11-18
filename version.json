@@ -1,19 +1,18 @@
 {
   "versionCode": 46,
   "versionName": "4.1.6",
-  "releaseDate": "2026-11-12",
-  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_4.1.6_v46_R2_BACKUPFIX.apk",
-  "apkSizeBytes": 21318953,
-  "sha256": "423f28a76df9a58dbd0e91505cbf3f7ccc59d2192262c07e94ce2530b012ece",
+  "releaseDate": "2026-11-18",
+  "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6/SilaTVPRO_4.1.6_v46_R2.apk",
+  "apkSizeBytes": 21267375,
+  "sha256": "c9daeffa2e7f75780a8e120ec33667ac44997a91f74fdc4813a071ccfc5c1e74",
   "mandatory": false,
   "changes": [
-    "✨ SilaTV PRO 4.1.6 (46) – R2 Backup Fix",
+    "✨ SilaTV PRO 4.1.6 (46) – R2 YEDEKLEME DÜZELTMESİ",
     "💾 Özel film siteleri, adları ve adresleri yedeklemeye dahil edildi",
     "⚙️ Etkin/devre dışı site ayarları ve açılış tercihleri geri yükleniyor",
     "🔁 Aynı yedek tekrar yüklendiğinde mükerrer site oluşması önlendi",
     "↩️ Eski yedek dosyalarıyla uyumluluk korundu",
     "🛡️ VPN ve Reklam Engelleme özellikleri korundu",
-    "🌐 Web Player ve Player özellikleri korundu",
-    "🧪 959/959 otomatik test başarılı"
+    "🌐 Web Player ve Player özellikleri korundu"
   ]
 }
