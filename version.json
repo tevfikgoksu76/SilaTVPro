@@ -3,8 +3,8 @@
   "versionName": "4.1.6",
   "releaseDate": "2026-11-19",
   "apkUrl": "https://github.com/tevfikgoksu76/SilaTVPro/releases/download/v4.1.6-r2-eklenti-yedek-fix/SilaTVPRO_4.1.6_v46_R2_EKLENTI_YEDEK_FIX.apk",
-  "apkSizeBytes": 0,
-  "sha256": "",
+  "apkSizeBytes": 21275171,
+  "sha256": "d82bde3cea6ed909cd97d72cb66bc891ba8aad91a581987b8a8c49eae2bede0b",
   "mandatory": false,
   "changes": [
     "🧩 Eklentiler bölümüne elle eklenen sitelerin yedeklenmesi düzeltildi",
